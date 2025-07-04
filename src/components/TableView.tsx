@@ -120,9 +120,8 @@ export function TableView() {
                 </th>
                 {project.languages
                   .filter(lang => lang.code !== 'en')
-                  .map((lang, index) => {
+                  .map((lang) => {
                     const isSelected = lang.code === selectedLanguage;
-                    const leftPosition = showVariableColumn ? 780 + (index * 300) : 580 + (index * 300);
                     return (
                       <th
                         key={lang.code}
@@ -376,7 +375,7 @@ function AssetSection({
               <code className="font-mono text-xs">{getVariableName(deliverable, asset, field)}</code>
             </td>
           )}
-          {languages.map((lang, index) => {
+          {languages.map((lang) => {
             const translation = getTranslation(field.id, lang.code);
             const cellKey = `${field.id}-${lang.code}`;
             const isEditing = editingCell === cellKey;
