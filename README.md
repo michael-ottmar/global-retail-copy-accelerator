@@ -1,69 +1,83 @@
-# React + TypeScript + Vite
+# Global Retail Copy Accelerator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A purpose-built translation management system for retail marketing copy with seamless Figma integration.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 📊 **Hierarchical Table View** - Organized by deliverables, assets, and fields
+- 👁️ **Preview Mode** - Visual Amazon PDP-style preview
+- 🎨 **Figma Export** - JSON format ready for Figma Variables import
+- 🌐 **Multi-language Support** - Add unlimited languages with 2-letter codes
+- ✏️ **Custom Fields** - Add custom field names to any asset
+- 📝 **Sample Content** - Pre-filled product content for testing
+- 🔄 **Real-time Editing** - Click any cell to edit inline
+- 📌 **Smart UI** - Sticky headers, hover tooltips, status indicators
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Zustand (State Management)
+- Lucide Icons
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+```bash
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/
+│   ├── Header.tsx       # Navigation and export controls
+│   ├── TableView.tsx    # Main translation table
+│   └── PreviewView.tsx  # Visual preview mode
+├── store/
+│   └── index.ts         # Zustand state management
+├── types/
+│   └── index.ts         # TypeScript type definitions
+├── utils/
+│   ├── exportJson.ts    # Figma JSON export logic
+│   ├── sampleData.ts    # Project structure generator
+│   └── sampleContent.ts # Sample English content
+└── App.tsx              # Main app component
+```
+
+## Usage
+
+1. **Add Languages**: Click the + button in the table header to add new language columns
+2. **Edit Content**: Click any cell to edit translations inline
+3. **Add Custom Fields**: Click "Add field" under any asset to create custom fields
+4. **Export to Figma**: Click "Export JSON" to download Figma-ready variables
+5. **Preview Mode**: Toggle between table and visual preview views
+
+## Data Structure
+
+- **PDP** (Product Detail Page)
+  - Product Details
+  - Gallery Images (1-8)
+  - Modules (1-7 with carousel variants)
+- **Banners** (A, B, C variants)
+- **CRM** (Customer Relationship Management modules)
+
+## Future Enhancements
+
+- Word document export
+- AI-powered translation assistance
+- Real-time collaboration
+- Supabase backend integration
+- Offline desktop app
+
+## License
+
+Private - All rights reserved

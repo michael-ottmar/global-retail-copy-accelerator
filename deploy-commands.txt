@@ -1,0 +1,17 @@
+# After creating your GitHub repository, run these commands:
+
+# Replace YOUR_GITHUB_USERNAME with your actual GitHub username
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/global-retail-copy-accelerator.git
+
+# Push to GitHub
+git branch -M main
+git push -u origin main
+
+# Then go to Vercel:
+# 1. Visit https://vercel.com/new
+# 2. Import your GitHub repository
+# 3. Vercel will auto-detect Vite and configure everything
+# 4. Click "Deploy"
+
+# Your app will be live at a URL like:
+# https://global-retail-copy-accelerator.vercel.app
