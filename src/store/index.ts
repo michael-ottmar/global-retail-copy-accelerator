@@ -14,6 +14,7 @@ interface Store {
   searchQuery: string;
   addingLanguage: boolean;
   lastSaved: Date | null;
+  showVariableColumn: boolean;
   
   // Undo/Redo
   history: Translation[][];
@@ -28,6 +29,7 @@ interface Store {
   setSelectedDeliverable: (deliverableId: string | null) => void;
   setSearchQuery: (query: string) => void;
   setAddingLanguage: (adding: boolean) => void;
+  setShowVariableColumn: (show: boolean) => void;
   
   // Undo/Redo
   undo: () => void;
@@ -58,6 +60,7 @@ export const useStore = create<Store>((set, get) => ({
   searchQuery: '',
   addingLanguage: false,
   lastSaved: null,
+  showVariableColumn: false,
   history: [[]],
   historyIndex: 0,
   
@@ -89,6 +92,7 @@ export const useStore = create<Store>((set, get) => ({
   setSelectedDeliverable: (deliverableId) => set({ selectedDeliverable: deliverableId }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setAddingLanguage: (adding) => set({ addingLanguage: adding }),
+  setShowVariableColumn: (show) => set({ showVariableColumn: show }),
   
   // Undo/Redo
   undo: () => set((state) => {

@@ -10,7 +10,8 @@ import {
   RefreshCwIcon,
   CheckIcon,
   UndoIcon,
-  RedoIcon
+  RedoIcon,
+  CodeIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { useState, useEffect } from 'react';
@@ -31,7 +32,9 @@ export function Header() {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
+    showVariableColumn,
+    setShowVariableColumn
   } = useStore();
   
   const [showAutoSaved, setShowAutoSaved] = useState(false);
@@ -192,6 +195,19 @@ export function Header() {
                 onClick={() => useStore.getState().setAddingLanguage(true)}
               >
                 Add a language column
+              </button>
+
+              {/* Variable Column Toggle */}
+              <button
+                onClick={() => setShowVariableColumn(!showVariableColumn)}
+                className={`flex items-center text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                  showVariableColumn 
+                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                    : 'text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <CodeIcon className="w-4 h-4 mr-1.5" />
+                {showVariableColumn ? 'Hide' : 'Show'} Variables
               </button>
             </div>
 

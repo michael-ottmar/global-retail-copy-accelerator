@@ -14,7 +14,8 @@ export function TableView() {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
+    showVariableColumn
   } = useStore();
   
   const [expandedDeliverables, setExpandedDeliverables] = useState<Set<string>>(new Set(['pdp-1']));
@@ -102,29 +103,42 @@ export function TableView() {
       )}
       
       {/* Table Container */}
-      <div className="flex-1 overflow-hidden bg-white">
-        <div className="h-full overflow-auto relative">
+      <div className="flex-1 bg-white overflow-auto">
           <table className="w-full">
             <thead className="sticky top-0 z-20">
               <tr>
-                <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-80">
+                <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" style={{ width: '280px' }}>
                   Deliverable / Asset / Field
                 </th>
-                <th className="sticky left-[320px] z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]">
+                {showVariableColumn && (
+                  <th className="sticky z-20 bg-gray-100 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider" style={{ left: '280px', width: '200px' }}>
+                    Variable
+                  </th>
+                )}
+                <th className={`sticky z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]`} style={{ left: showVariableColumn ? '480px' : '280px' }}>
                   English (Source)
                 </th>
                 {project.languages
                   .filter(lang => lang.code !== 'en')
-                  .map(lang => (
-                    <th
-                      key={lang.code}
-                      className={`border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[300px] ${
-                        selectedLanguage === lang.code ? 'bg-purple-50 text-purple-700' : 'bg-gray-50 text-gray-500'
-                      }`}
-                    >
-                      {lang.flag} {lang.name}
-                    </th>
-                  ))}
+                  .map((lang, index) => {
+                    const isSelected = lang.code === selectedLanguage;
+                    const leftPosition = showVariableColumn ? 780 + (index * 300) : 580 + (index * 300);
+                    return (
+                      <th
+                        key={lang.code}
+                        className={`${
+                          isSelected 
+                            ? 'sticky z-20 bg-purple-50 border-b border-r border-gray-200' 
+                            : 'bg-gray-50 border-b border-gray-200'
+                        } px-4 py-3 text-left text-xs font-medium ${
+                          isSelected ? 'text-purple-700' : 'text-gray-500'
+                        } uppercase tracking-wider min-w-[300px]`}
+                        style={isSelected ? { left: `${showVariableColumn ? '780px' : '580px'}` } : {}}
+                      >
+                        {lang.flag} {lang.name}
+                      </th>
+                    );
+                  })}
               </tr>
             </thead>
             <tbody>
@@ -146,6 +160,7 @@ export function TableView() {
                   getVariableName={getVariableName}
                   editingFieldName={editingFieldName}
                   setEditingFieldName={setEditingFieldName}
+                  showVariableColumn={showVariableColumn}
                 />
               ))}
             </tbody>
@@ -172,6 +187,7 @@ interface DeliverableSectionProps {
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
   editingFieldName: string | null;
   setEditingFieldName: (id: string | null) => void;
+  showVariableColumn: boolean;
 }
 
 function DeliverableSection({
@@ -190,6 +206,7 @@ function DeliverableSection({
   getVariableName,
   editingFieldName,
   setEditingFieldName,
+  showVariableColumn,
 }: DeliverableSectionProps) {
   const { addAsset } = useStore();
 
@@ -203,8 +220,11 @@ function DeliverableSection({
             {deliverable.name.toUpperCase()}
           </button>
         </td>
-        <td className="sticky left-[320px] z-10 bg-gray-100 border-r border-gray-200"></td>
-        <td colSpan={languages.length - 1} className="bg-gray-100"></td>
+        {showVariableColumn && (
+          <td className="sticky z-10 bg-gray-100 border-r border-gray-200" style={{ left: '280px' }}></td>
+        )}
+        <td className={`sticky z-10 bg-gray-100 border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+        <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className="bg-gray-100"></td>
       </tr>
       
       {expanded && (
@@ -227,6 +247,7 @@ function DeliverableSection({
               editingFieldName={editingFieldName}
               setEditingFieldName={setEditingFieldName}
               matchesSearch={matchesSearch}
+              showVariableColumn={showVariableColumn}
             />
           ))}
           
@@ -241,7 +262,7 @@ function DeliverableSection({
                 Add {deliverable.type === 'pdp' ? 'Module' : 'Asset'}
               </button>
             </td>
-            <td colSpan={languages.length + 1}></td>
+            <td colSpan={languages.length + (showVariableColumn ? 2 : 1)}></td>
           </tr>
         </>
       )}
@@ -265,6 +286,7 @@ interface AssetSectionProps {
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
   editingFieldName: string | null;
   setEditingFieldName: (id: string | null) => void;
+  showVariableColumn: boolean;
 }
 
 function AssetSection({
@@ -283,6 +305,7 @@ function AssetSection({
   getVariableName,
   editingFieldName,
   setEditingFieldName,
+  showVariableColumn,
 }: AssetSectionProps) {
   const { removeAsset, addCustomField } = useStore();
   const [addingField, setAddingField] = useState(false);
@@ -313,8 +336,11 @@ function AssetSection({
             </button>
           </div>
         </td>
-        <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
-        <td colSpan={languages.length - 1} className={bgColor}></td>
+        {showVariableColumn && (
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+        )}
+        <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+        <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
       </tr>
       
       {/* Fields */}
@@ -346,19 +372,35 @@ function AssetSection({
               )}
             </div>
           </td>
-          {languages.map((lang) => {
+          {showVariableColumn && (
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200 px-4 py-1 text-sm text-gray-500`} style={{ left: '280px' }}>
+              <code className="font-mono text-xs">{getVariableName(deliverable, asset, field)}</code>
+            </td>
+          )}
+          {languages.map((lang, index) => {
             const translation = getTranslation(field.id, lang.code);
             const cellKey = `${field.id}-${lang.code}`;
             const isEditing = editingCell === cellKey;
             const isSource = lang.code === 'en';
+            const isSelected = lang.code === selectedLanguage && !isSource;
             const variableName = getVariableName(deliverable, asset, field);
+            
+            let leftPosition;
+            if (isSource) {
+              leftPosition = showVariableColumn ? '480px' : '280px';
+            } else if (isSelected) {
+              leftPosition = showVariableColumn ? '780px' : '580px';
+            }
             
             return (
               <td
                 key={lang.code}
                 className={`relative ${
-                  isSource ? 'sticky left-[320px] z-10 bg-blue-50 border-r border-gray-200' : bgColor
-                } ${selectedLanguage === lang.code && !isSource ? 'bg-purple-50' : ''}`}
+                  isSource ? `sticky z-10 bg-blue-50 border-r border-gray-200` : 
+                  isSelected ? `sticky z-10 bg-purple-50 border-r border-gray-200` : 
+                  bgColor
+                }`}
+                style={isSource || isSelected ? { left: leftPosition } : {}}
                 onFocus={() => setCurrentVariable(variableName)}
                 onClick={() => setCurrentVariable(variableName)}
               >
@@ -384,7 +426,6 @@ function AssetSection({
               </td>
             );
           })}
-          <td className={bgColor}></td>
         </tr>
       ))}
       
@@ -403,8 +444,11 @@ function AssetSection({
               autoFocus
             />
           </td>
-          <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
-        <td colSpan={languages.length - 1} className={bgColor}></td>
+          {showVariableColumn && (
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+          )}
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+          <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
         </tr>
       ) : (
         <tr className={bgColor}>
@@ -417,8 +461,11 @@ function AssetSection({
               Add field
             </button>
           </td>
-          <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
-        <td colSpan={languages.length - 1} className={bgColor}></td>
+          {showVariableColumn && (
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+          )}
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+          <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
         </tr>
       )}
     </>
