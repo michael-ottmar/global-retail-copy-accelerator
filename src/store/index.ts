@@ -68,7 +68,7 @@ export const useStore = create<Store>((set, get) => ({
   updateTranslation: (fieldId, languageCode, value) => set((state) => {
     const newTranslations = state.translations.map(t => 
       t.fieldId === fieldId && t.languageCode === languageCode
-        ? { ...t, value, status: value ? 'in_progress' : 'empty', lastModified: new Date() }
+        ? { ...t, value, status: value ? ('in_progress' as const) : ('empty' as const), lastModified: new Date() }
         : t
     );
     

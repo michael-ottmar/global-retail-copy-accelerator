@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon, EditIcon, UndoIcon, RedoIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon, EditIcon } from 'lucide-react';
 import type { Deliverable, Asset } from '../types';
 
 export function TableView() {
@@ -11,8 +11,6 @@ export function TableView() {
     updateTranslation,
     searchQuery,
     selectedDeliverable,
-    addingLanguage,
-    setAddingLanguage,
     undo,
     redo,
     canUndo,
@@ -143,7 +141,6 @@ export function TableView() {
                   getStatusColor={getStatusColor}
                   languages={project.languages}
                   selectedLanguage={selectedLanguage}
-                  currentVariable={currentVariable}
                   setCurrentVariable={setCurrentVariable}
                   matchesSearch={matchesSearch}
                   getVariableName={getVariableName}
@@ -170,7 +167,6 @@ interface DeliverableSectionProps {
   getStatusColor: (status: string) => string;
   languages: any[];
   selectedLanguage: string;
-  currentVariable: string;
   setCurrentVariable: (variable: string) => void;
   matchesSearch: (field: any, asset: Asset, deliverable: Deliverable) => boolean;
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
@@ -189,7 +185,6 @@ function DeliverableSection({
   getStatusColor,
   languages,
   selectedLanguage,
-  currentVariable,
   setCurrentVariable,
   matchesSearch,
   getVariableName,
@@ -227,11 +222,11 @@ function DeliverableSection({
               getStatusColor={getStatusColor}
               languages={languages}
               selectedLanguage={selectedLanguage}
-              currentVariable={currentVariable}
               setCurrentVariable={setCurrentVariable}
               getVariableName={getVariableName}
               editingFieldName={editingFieldName}
               setEditingFieldName={setEditingFieldName}
+              matchesSearch={matchesSearch}
             />
           ))}
           
@@ -265,7 +260,6 @@ interface AssetSectionProps {
   getStatusColor: (status: string) => string;
   languages: any[];
   selectedLanguage: string;
-  currentVariable: string;
   setCurrentVariable: (variable: string) => void;
   matchesSearch: (field: any, asset: Asset, deliverable: Deliverable) => boolean;
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
@@ -284,7 +278,6 @@ function AssetSection({
   getStatusColor,
   languages,
   selectedLanguage,
-  currentVariable,
   setCurrentVariable,
   matchesSearch,
   getVariableName,
