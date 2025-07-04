@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon, EditIcon } from 'lucide-react';
 import type { Deliverable, Asset } from '../types';
@@ -22,6 +22,7 @@ export function TableView() {
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editingFieldName, setEditingFieldName] = useState<string | null>(null);
   const [currentVariable, setCurrentVariable] = useState<string>('');
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -38,6 +39,22 @@ export function TableView() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, canUndo, canRedo]);
+
+  // Scroll to selected language column when it changes
+  useEffect(() => {
+    if (selectedLanguage !== 'en' && tableRef.current) {
+      // Calculate the position of the selected language column
+      // It's positioned right after the source column
+      const baseOffset = showVariableColumn ? 680 : 580;
+      const scrollPosition = baseOffset - 100; // Leave some space for context
+      
+      setTimeout(() => {
+        if (tableRef.current) {
+          tableRef.current.scrollLeft = scrollPosition;
+        }
+      }, 50); // Small delay to ensure DOM is updated
+    }
+  }, [selectedLanguage, showVariableColumn]);
 
   if (!project) return null;
 
@@ -103,7 +120,7 @@ export function TableView() {
       )}
       
       {/* Table Container */}
-      <div className="flex-1 bg-white overflow-auto">
+      <div ref={tableRef} className="flex-1 bg-white overflow-auto">
           <table className="w-full">
             <thead className="sticky top-0 z-20">
               <tr>
@@ -118,26 +135,24 @@ export function TableView() {
                 <th className={`sticky z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]`} style={{ left: showVariableColumn ? '480px' : '280px' }}>
                   English (Source)
                 </th>
+                {selectedLanguage !== 'en' && (
+                  <th
+                    className="sticky z-20 bg-purple-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider min-w-[300px]"
+                    style={{ left: showVariableColumn ? '680px' : '580px' }}
+                  >
+                    {project.languages.find(l => l.code === selectedLanguage)?.flag} {project.languages.find(l => l.code === selectedLanguage)?.name}
+                  </th>
+                )}
                 {project.languages
-                  .filter(lang => lang.code !== 'en')
-                  .map((lang) => {
-                    const isSelected = lang.code === selectedLanguage;
-                    return (
-                      <th
-                        key={lang.code}
-                        className={`${
-                          isSelected 
-                            ? 'sticky z-20 bg-purple-50 border-b border-r border-gray-200' 
-                            : 'bg-gray-50 border-b border-gray-200'
-                        } px-4 py-3 text-left text-xs font-medium ${
-                          isSelected ? 'text-purple-700' : 'text-gray-500'
-                        } uppercase tracking-wider min-w-[300px]`}
-                        style={isSelected ? { left: `${showVariableColumn ? '780px' : '580px'}` } : {}}
-                      >
-                        {lang.flag} {lang.name}
-                      </th>
-                    );
-                  })}
+                  .filter(lang => lang.code !== 'en' && lang.code !== selectedLanguage)
+                  .map((lang) => (
+                    <th
+                      key={lang.code}
+                      className="bg-gray-50 border-b border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[300px]"
+                    >
+                      {lang.flag} {lang.name}
+                    </th>
+                  ))}
               </tr>
             </thead>
             <tbody>
@@ -387,7 +402,7 @@ function AssetSection({
             if (isSource) {
               leftPosition = showVariableColumn ? '480px' : '280px';
             } else if (isSelected) {
-              leftPosition = showVariableColumn ? '780px' : '580px';
+              leftPosition = showVariableColumn ? '680px' : '580px';
             }
             
             return (
