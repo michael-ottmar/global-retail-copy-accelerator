@@ -1,9 +1,48 @@
 import { useStore } from '../store';
-import { TableIcon, EyeIcon, DownloadIcon } from 'lucide-react';
+import { 
+  ArrowLeftIcon, 
+  TableIcon, 
+  EyeIcon, 
+  DownloadIcon, 
+  SettingsIcon, 
+  SparklesIcon,
+  SearchIcon,
+  RefreshCwIcon,
+  CheckIcon,
+  UndoIcon,
+  RedoIcon
+} from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
+import { useState, useEffect } from 'react';
 
 export function Header() {
-  const { currentView, setCurrentView, selectedLanguage, setSelectedLanguage, project, translations } = useStore();
+  const { 
+    currentView, 
+    setCurrentView, 
+    selectedLanguage, 
+    setSelectedLanguage, 
+    project, 
+    translations,
+    searchQuery,
+    setSearchQuery,
+    selectedDeliverable,
+    setSelectedDeliverable,
+    lastSaved,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useStore();
+  
+  const [showAutoSaved, setShowAutoSaved] = useState(false);
+
+  useEffect(() => {
+    if (lastSaved) {
+      setShowAutoSaved(true);
+      const timer = setTimeout(() => setShowAutoSaved(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastSaved]);
 
   const handleExportJSON = () => {
     if (!project) return;
@@ -13,68 +52,171 @@ export function Header() {
     downloadJSON(jsonContent, `${project.name.replace(/\s+/g, '-')}_${timestamp}.json`);
   };
 
+  const completedTranslations = translations.filter(t => t.value && t.languageCode !== 'en').length;
+  const totalTranslations = translations.filter(t => t.languageCode !== 'en').length;
+  const totalVariables = project?.deliverables.reduce((acc, d) => 
+    acc + d.assets.reduce((assetAcc, a) => assetAcc + a.fields.length, 0), 0
+  ) || 0;
+
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo/Title */}
-          <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Global Retail Copy Accelerator
+    <>
+      {/* Main Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button className="p-1 hover:bg-gray-100 rounded">
+              <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
+            </button>
+            <h1 className="text-lg font-medium text-gray-900">
+              {project?.name || 'Untitled Project'}
             </h1>
           </div>
 
-          {/* View Toggle */}
-          <div className="flex items-center space-x-4">
-            <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center space-x-3">
+            {/* View Toggle */}
+            <div className="flex items-center border border-gray-200 rounded-lg">
               <button
                 onClick={() => setCurrentView('table')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-1.5 text-sm font-medium transition-colors ${
                   currentView === 'table'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <TableIcon className="w-4 h-4 mr-2" />
-                Table View
+                <TableIcon className="w-4 h-4" />
+                <span className="ml-1.5">Table</span>
               </button>
               <button
                 onClick={() => setCurrentView('preview')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-1.5 text-sm font-medium transition-colors ${
                   currentView === 'preview'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <EyeIcon className="w-4 h-4 mr-2" />
-                Preview View
+                <EyeIcon className="w-4 h-4" />
+                <span className="ml-1.5">Preview</span>
               </button>
             </div>
 
-            {/* Language Selector */}
-            <select
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="block w-32 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-            >
-              {project?.languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.flag} {lang.name}
-                </option>
-              ))}
-            </select>
+            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
+              <SettingsIcon className="w-5 h-5" />
+            </button>
 
-            {/* Export Button */}
             <button
               onClick={handleExportJSON}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-500 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200"
             >
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export JSON
+              <DownloadIcon className="w-4 h-4 inline mr-1.5" />
+              Export
+            </button>
+
+            <button className="px-3 py-1.5 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-lg flex items-center">
+              <SparklesIcon className="w-4 h-4 mr-1.5" />
+              AI Assistant
             </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Secondary Toolbar - Only show in table view */}
+      {currentView === 'table' && (
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {/* Language Selector */}
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {project?.languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.code.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+
+              {/* Search */}
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search fields..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 w-64"
+                />
+              </div>
+
+              {/* Find & Replace */}
+              <button className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-600" title="Find & Replace">
+                <RefreshCwIcon className="w-4 h-4" />
+              </button>
+
+              {/* Undo/Redo */}
+              <div className="flex items-center space-x-1">
+                <button 
+                  onClick={() => undo()}
+                  disabled={!canUndo()}
+                  className={`p-1.5 rounded-lg ${canUndo() ? 'hover:bg-gray-200 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+                  title="Undo (Cmd+Z)"
+                >
+                  <UndoIcon className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => redo()}
+                  disabled={!canRedo()}
+                  className={`p-1.5 rounded-lg ${canRedo() ? 'hover:bg-gray-200 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+                  title="Redo (Cmd+Shift+Z)"
+                >
+                  <RedoIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Deliverables Filter */}
+              <select
+                value={selectedDeliverable || ''}
+                onChange={(e) => setSelectedDeliverable(e.target.value || null)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">All Deliverables</option>
+                {project?.deliverables.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+
+              {/* Add Language Button */}
+              <button 
+                className="text-sm text-gray-700 bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-lg"
+                onClick={() => useStore.getState().setAddingLanguage(true)}
+              >
+                Add a language column
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              {/* Stats */}
+              <span>{totalVariables} variables</span>
+              <span>•</span>
+              <span>{project?.languages.length} languages</span>
+              <span>•</span>
+              
+              {/* Auto-save indicator */}
+              {showAutoSaved ? (
+                <span className="text-green-600 flex items-center">
+                  <CheckIcon className="w-3 h-3 mr-1" />
+                  Auto-saved
+                </span>
+              ) : (
+                <span className="text-gray-500">
+                  {completedTranslations}/{totalTranslations} translations
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

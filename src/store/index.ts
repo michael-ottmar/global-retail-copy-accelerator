@@ -11,6 +11,13 @@ interface Store {
   currentView: 'table' | 'preview';
   selectedLanguage: string;
   selectedDeliverable: string | null;
+  searchQuery: string;
+  addingLanguage: boolean;
+  lastSaved: Date | null;
+  
+  // Undo/Redo
+  history: Translation[][];
+  historyIndex: number;
   
   // Actions
   setProject: (project: Project) => void;
@@ -19,6 +26,14 @@ interface Store {
   setCurrentView: (view: 'table' | 'preview') => void;
   setSelectedLanguage: (language: string) => void;
   setSelectedDeliverable: (deliverableId: string | null) => void;
+  setSearchQuery: (query: string) => void;
+  setAddingLanguage: (adding: boolean) => void;
+  
+  // Undo/Redo
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
   
   // Deliverable management
   addAsset: (deliverableId: string, assetType: string) => void;
@@ -33,29 +48,71 @@ interface Store {
   clearAllTranslations: () => void;
 }
 
-export const useStore = create<Store>((set) => ({
+export const useStore = create<Store>((set, get) => ({
   // Initial state
   project: null,
   translations: [],
   currentView: 'table',
   selectedLanguage: 'en',
   selectedDeliverable: null,
+  searchQuery: '',
+  addingLanguage: false,
+  lastSaved: null,
+  history: [[]],
+  historyIndex: 0,
   
   // Actions
   setProject: (project) => set({ project }),
   setTranslations: (translations) => set({ translations }),
   
-  updateTranslation: (fieldId, languageCode, value) => set((state) => ({
-    translations: state.translations.map(t => 
+  updateTranslation: (fieldId, languageCode, value) => set((state) => {
+    const newTranslations = state.translations.map(t => 
       t.fieldId === fieldId && t.languageCode === languageCode
         ? { ...t, value, status: value ? 'in_progress' : 'empty', lastModified: new Date() }
         : t
-    )
-  })),
+    );
+    
+    // Add to history for undo/redo
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(newTranslations);
+    
+    return {
+      translations: newTranslations,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+      lastSaved: new Date()
+    };
+  }),
   
   setCurrentView: (view) => set({ currentView: view }),
   setSelectedLanguage: (language) => set({ selectedLanguage: language }),
   setSelectedDeliverable: (deliverableId) => set({ selectedDeliverable: deliverableId }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setAddingLanguage: (adding) => set({ addingLanguage: adding }),
+  
+  // Undo/Redo
+  undo: () => set((state) => {
+    if (state.historyIndex > 0) {
+      return {
+        translations: state.history[state.historyIndex - 1],
+        historyIndex: state.historyIndex - 1
+      };
+    }
+    return state;
+  }),
+  
+  redo: () => set((state) => {
+    if (state.historyIndex < state.history.length - 1) {
+      return {
+        translations: state.history[state.historyIndex + 1],
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    return state;
+  }),
+  
+  canUndo: () => get().historyIndex > 0,
+  canRedo: () => get().historyIndex < get().history.length - 1,
   
   addAsset: (deliverableId, assetType) => set((state) => {
     if (!state.project) return state;

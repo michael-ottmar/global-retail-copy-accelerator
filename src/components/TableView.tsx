@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon, EditIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon, EditIcon, UndoIcon, RedoIcon } from 'lucide-react';
 import type { Deliverable, Asset } from '../types';
 
 export function TableView() {
@@ -8,17 +8,54 @@ export function TableView() {
     project, 
     translations, 
     selectedLanguage, 
-    updateTranslation
+    updateTranslation,
+    searchQuery,
+    selectedDeliverable,
+    addingLanguage,
+    setAddingLanguage,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   } = useStore();
   
   const [expandedDeliverables, setExpandedDeliverables] = useState<Set<string>>(new Set(['pdp-1']));
   const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [addingLanguage, setAddingLanguage] = useState(false);
-  const [newLanguageCode, setNewLanguageCode] = useState('');
   const [editingFieldName, setEditingFieldName] = useState<string | null>(null);
-  const [hoveredVariable, setHoveredVariable] = useState<string | null>(null);
+  const [currentVariable, setCurrentVariable] = useState<string>('');
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo()) undo();
+      } else if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        if (canRedo()) redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, canUndo, canRedo]);
 
   if (!project) return null;
+
+  // Filter deliverables based on selection
+  const filteredDeliverables = selectedDeliverable 
+    ? project.deliverables.filter(d => d.id === selectedDeliverable)
+    : project.deliverables;
+
+  // Filter based on search query
+  const matchesSearch = (field: any, asset: Asset, deliverable: Deliverable) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const fieldName = (field.customName || field.name).toLowerCase();
+    const assetName = asset.name.toLowerCase();
+    const deliverableName = deliverable.name.toLowerCase();
+    return fieldName.includes(query) || assetName.includes(query) || deliverableName.includes(query);
+  };
 
   const toggleDeliverable = (deliverableId: string) => {
     const newExpanded = new Set(expandedDeliverables);
@@ -52,54 +89,30 @@ export function TableView() {
     }
   };
 
-  const handleAddLanguage = () => {
-    if (newLanguageCode && newLanguageCode.length === 2) {
-      useStore.getState().addLanguage(newLanguageCode.toLowerCase());
-      setNewLanguageCode('');
-      setAddingLanguage(false);
-    }
-  };
 
   const getVariableName = (deliverable: Deliverable, asset: Asset, field: any) => {
     return `${deliverable.name.toLowerCase()}/${asset.name.toLowerCase()}/${(field.customName || field.name).toLowerCase()}`.replace(/\s+/g, '_');
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      {/* Table Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">
-            {translations.filter(t => t.value && t.languageCode !== 'en').length} / {translations.filter(t => t.languageCode !== 'en').length} translations complete
-          </span>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Current Variable Display */}
+      {currentVariable && (
+        <div className="bg-gray-100 border-b border-gray-200 px-4 py-2 text-sm text-gray-600">
+          <span className="font-medium">Variable:</span> {currentVariable}
         </div>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => useStore.getState().fillSampleContent()}
-            className="text-sm text-purple-600 hover:text-purple-700"
-          >
-            Fill Sample Content
-          </button>
-          <span className="text-gray-300">|</span>
-          <button 
-            onClick={() => useStore.getState().clearAllTranslations()}
-            className="text-sm text-red-600 hover:text-red-700"
-          >
-            Clear All
-          </button>
-        </div>
-      </div>
-
+      )}
+      
       {/* Table Container */}
-      <div className="flex-1 overflow-hidden bg-gray-50">
-        <div className="h-full overflow-auto">
+      <div className="flex-1 overflow-hidden bg-white">
+        <div className="h-full overflow-auto relative">
           <table className="w-full">
             <thead className="sticky top-0 z-20">
               <tr>
                 <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-80">
                   Deliverable / Asset / Field
                 </th>
-                <th className="bg-blue-50 border-b border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]">
+                <th className="sticky left-[320px] z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]">
                   English (Source)
                 </th>
                 {project.languages
@@ -114,33 +127,10 @@ export function TableView() {
                       {lang.flag} {lang.name}
                     </th>
                   ))}
-                {addingLanguage ? (
-                  <th className="bg-gray-50 border-b border-gray-200 px-4 py-3">
-                    <input
-                      type="text"
-                      placeholder="Language code (e.g. 'ko')"
-                      value={newLanguageCode}
-                      onChange={(e) => setNewLanguageCode(e.target.value)}
-                      onBlur={handleAddLanguage}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddLanguage()}
-                      className="px-2 py-1 text-sm border border-purple-500 rounded focus:outline-none"
-                      autoFocus
-                    />
-                  </th>
-                ) : (
-                  <th className="bg-gray-50 border-b border-gray-200 px-4 py-3 w-20">
-                    <button
-                      onClick={() => setAddingLanguage(true)}
-                      className="text-purple-600 hover:text-purple-700"
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                    </button>
-                  </th>
-                )}
               </tr>
             </thead>
             <tbody>
-              {project.deliverables.map((deliverable) => (
+              {filteredDeliverables.map((deliverable) => (
                 <DeliverableSection
                   key={deliverable.id}
                   deliverable={deliverable}
@@ -153,8 +143,9 @@ export function TableView() {
                   getStatusColor={getStatusColor}
                   languages={project.languages}
                   selectedLanguage={selectedLanguage}
-                  hoveredVariable={hoveredVariable}
-                  setHoveredVariable={setHoveredVariable}
+                  currentVariable={currentVariable}
+                  setCurrentVariable={setCurrentVariable}
+                  matchesSearch={matchesSearch}
                   getVariableName={getVariableName}
                   editingFieldName={editingFieldName}
                   setEditingFieldName={setEditingFieldName}
@@ -179,8 +170,9 @@ interface DeliverableSectionProps {
   getStatusColor: (status: string) => string;
   languages: any[];
   selectedLanguage: string;
-  hoveredVariable: string | null;
-  setHoveredVariable: (id: string | null) => void;
+  currentVariable: string;
+  setCurrentVariable: (variable: string) => void;
+  matchesSearch: (field: any, asset: Asset, deliverable: Deliverable) => boolean;
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
   editingFieldName: string | null;
   setEditingFieldName: (id: string | null) => void;
@@ -197,8 +189,9 @@ function DeliverableSection({
   getStatusColor,
   languages,
   selectedLanguage,
-  hoveredVariable,
-  setHoveredVariable,
+  currentVariable,
+  setCurrentVariable,
+  matchesSearch,
   getVariableName,
   editingFieldName,
   setEditingFieldName,
@@ -215,7 +208,8 @@ function DeliverableSection({
             {deliverable.name.toUpperCase()}
           </button>
         </td>
-        <td colSpan={languages.length + 1} className="bg-gray-100"></td>
+        <td className="sticky left-[320px] z-10 bg-gray-100 border-r border-gray-200"></td>
+        <td colSpan={languages.length - 1} className="bg-gray-100"></td>
       </tr>
       
       {expanded && (
@@ -233,8 +227,8 @@ function DeliverableSection({
               getStatusColor={getStatusColor}
               languages={languages}
               selectedLanguage={selectedLanguage}
-              hoveredVariable={hoveredVariable}
-              setHoveredVariable={setHoveredVariable}
+              currentVariable={currentVariable}
+              setCurrentVariable={setCurrentVariable}
               getVariableName={getVariableName}
               editingFieldName={editingFieldName}
               setEditingFieldName={setEditingFieldName}
@@ -271,8 +265,9 @@ interface AssetSectionProps {
   getStatusColor: (status: string) => string;
   languages: any[];
   selectedLanguage: string;
-  hoveredVariable: string | null;
-  setHoveredVariable: (id: string | null) => void;
+  currentVariable: string;
+  setCurrentVariable: (variable: string) => void;
+  matchesSearch: (field: any, asset: Asset, deliverable: Deliverable) => boolean;
   getVariableName: (deliverable: Deliverable, asset: Asset, field: any) => string;
   editingFieldName: string | null;
   setEditingFieldName: (id: string | null) => void;
@@ -289,8 +284,9 @@ function AssetSection({
   getStatusColor,
   languages,
   selectedLanguage,
-  hoveredVariable,
-  setHoveredVariable,
+  currentVariable,
+  setCurrentVariable,
+  matchesSearch,
   getVariableName,
   editingFieldName,
   setEditingFieldName,
@@ -299,7 +295,7 @@ function AssetSection({
   const [addingField, setAddingField] = useState(false);
   const [newFieldName, setNewFieldName] = useState('');
   
-  const bgColor = assetIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50';
+  const bgColor = assetIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
   
   const handleAddField = () => {
     if (newFieldName) {
@@ -324,11 +320,12 @@ function AssetSection({
             </button>
           </div>
         </td>
-        <td colSpan={languages.length + 1} className={bgColor}></td>
+        <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
+        <td colSpan={languages.length - 1} className={bgColor}></td>
       </tr>
       
       {/* Fields */}
-      {asset.fields.map((field) => (
+      {asset.fields.filter(field => matchesSearch(field, asset, deliverable)).map((field) => (
         <tr key={field.id} className={bgColor}>
           <td className={`sticky left-0 z-10 ${bgColor} border-r border-gray-200 px-4 py-1`}>
             <div className="flex items-center justify-between group ml-10">
@@ -366,19 +363,12 @@ function AssetSection({
             return (
               <td
                 key={lang.code}
-                className={`relative border-gray-100 ${
-                  isSource ? 'bg-blue-50/30' : ''
-                } ${selectedLanguage === lang.code && !isSource ? 'bg-purple-50/30' : ''}`}
-                onMouseEnter={() => setHoveredVariable(cellKey)}
-                onMouseLeave={() => setHoveredVariable(null)}
+                className={`relative ${
+                  isSource ? 'sticky left-[320px] z-10 bg-blue-50 border-r border-gray-200' : bgColor
+                } ${selectedLanguage === lang.code && !isSource ? 'bg-purple-50' : ''}`}
+                onFocus={() => setCurrentVariable(variableName)}
+                onClick={() => setCurrentVariable(variableName)}
               >
-                {/* Variable name tooltip */}
-                {hoveredVariable === cellKey && (
-                  <div className="absolute bottom-full left-0 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-50">
-                    {variableName}
-                  </div>
-                )}
-                
                 <div className="flex items-center px-4 py-1">
                   <div className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${getStatusColor(translation?.status || 'empty')}`} />
                   {isEditing ? (
@@ -420,7 +410,8 @@ function AssetSection({
               autoFocus
             />
           </td>
-          <td colSpan={languages.length + 1} className={bgColor}></td>
+          <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
+        <td colSpan={languages.length - 1} className={bgColor}></td>
         </tr>
       ) : (
         <tr className={bgColor}>
@@ -433,7 +424,8 @@ function AssetSection({
               Add field
             </button>
           </td>
-          <td colSpan={languages.length + 1} className={bgColor}></td>
+          <td className={`sticky left-[320px] z-10 ${bgColor} border-r border-gray-200`}></td>
+        <td colSpan={languages.length - 1} className={bgColor}></td>
         </tr>
       )}
     </>
