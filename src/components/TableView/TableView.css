@@ -1,0 +1,131 @@
+/* Table animations and polish */
+.table-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth transitions for sticky columns */
+.sticky-cell {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.sticky-cell.is-scrolled {
+  box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Row hover effects */
+.table-row {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table-row:hover .row-actions {
+  opacity: 1;
+}
+
+/* Cell editing animations */
+.editable-cell {
+  position: relative;
+}
+
+.editable-cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.editable-cell:hover::after {
+  border-color: rgba(147, 51, 234, 0.2);
+}
+
+.editable-cell.is-editing::after {
+  border-color: rgba(147, 51, 234, 0.5);
+}
+
+/* Status indicator animations */
+.status-indicator {
+  transition: all 0.2s ease-in-out;
+}
+
+.status-indicator.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Variable hover effect */
+.variable-code {
+  transition: all 0.15s ease-in-out;
+}
+
+.variable-code:hover {
+  background-color: rgba(147, 51, 234, 0.1);
+  color: rgb(126, 34, 206);
+  transform: translateX(2px);
+}
+
+/* Add/Remove button animations */
+.action-button {
+  transition: all 0.15s ease-in-out;
+  opacity: 0;
+}
+
+.table-row:hover .action-button,
+.action-button:focus {
+  opacity: 1;
+}
+
+.action-button:hover {
+  transform: scale(1.1);
+}
+
+/* Deliverable expand/collapse animation */
+.chevron-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
+.chevron-icon.expanded {
+  transform: rotate(90deg);
+}
+
+/* Focus styles */
+.editable-cell:focus-within {
+  z-index: 20;
+}
+
+/* Loading shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.loading-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 25%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 75%
+  );
+  background-size: 1000px 100%;
+}
