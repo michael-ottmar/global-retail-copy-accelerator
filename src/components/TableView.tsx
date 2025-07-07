@@ -45,7 +45,7 @@ export function TableView() {
     if (selectedLanguage !== 'en' && tableRef.current) {
       // Calculate the position of the selected language column
       // It's positioned right after the source column
-      const baseOffset = showVariableColumn ? 680 : 580;
+      const baseOffset = showVariableColumn ? 850 : 650;
       const scrollPosition = baseOffset - 100; // Leave some space for context
       
       setTimeout(() => {
@@ -124,21 +124,21 @@ export function TableView() {
           <table className="w-full">
             <thead className="sticky top-0 z-20">
               <tr>
-                <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" style={{ width: '280px' }}>
+                <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" style={{ width: '350px' }}>
                   Deliverable / Asset / Field
                 </th>
                 {showVariableColumn && (
-                  <th className="sticky z-20 bg-gray-100 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider" style={{ left: '280px', width: '200px' }}>
+                  <th className="sticky z-20 bg-gray-100 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider" style={{ left: '350px', width: '200px' }}>
                     Variable
                   </th>
                 )}
-                <th className={`sticky z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]`} style={{ left: showVariableColumn ? '480px' : '280px' }}>
+                <th className={`sticky z-20 bg-blue-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider min-w-[300px]`} style={{ left: showVariableColumn ? '550px' : '350px' }}>
                   English (Source)
                 </th>
                 {selectedLanguage !== 'en' && (
                   <th
                     className="sticky z-20 bg-purple-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider min-w-[300px]"
-                    style={{ left: showVariableColumn ? '680px' : '580px' }}
+                    style={{ left: showVariableColumn ? '850px' : '650px' }}
                   >
                     {project.languages.find(l => l.code === selectedLanguage)?.flag} {project.languages.find(l => l.code === selectedLanguage)?.name}
                   </th>
@@ -234,9 +234,9 @@ function DeliverableSection({
           </button>
         </td>
         {showVariableColumn && (
-          <td className="sticky z-10 bg-gray-100 border-r border-gray-200" style={{ left: '280px' }}></td>
+          <td className="sticky z-10 bg-gray-100 border-r border-gray-200" style={{ left: '350px' }}></td>
         )}
-        <td className={`sticky z-10 bg-gray-100 border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+        <td className={`sticky z-10 bg-gray-100 border-r border-gray-200`} style={{ left: showVariableColumn ? '550px' : '350px' }}></td>
         <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className="bg-gray-100"></td>
       </tr>
       
@@ -350,9 +350,9 @@ function AssetSection({
           </div>
         </td>
         {showVariableColumn && (
-          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '350px' }}></td>
         )}
-        <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+        <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '550px' : '350px' }}></td>
         <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
       </tr>
       
@@ -386,7 +386,7 @@ function AssetSection({
             </div>
           </td>
           {showVariableColumn && (
-            <td className={`sticky z-10 ${bgColor} border-r border-gray-200 px-4 py-1 text-sm text-gray-500`} style={{ left: '280px' }}>
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200 px-4 py-1 text-sm text-gray-500`} style={{ left: '350px' }}>
               <code className="font-mono text-xs">{getVariableName(deliverable, asset, field)}</code>
             </td>
           )}
@@ -400,9 +400,9 @@ function AssetSection({
             
             let leftPosition;
             if (isSource) {
-              leftPosition = showVariableColumn ? '480px' : '280px';
+              leftPosition = showVariableColumn ? '550px' : '350px';
             } else if (isSelected) {
-              leftPosition = showVariableColumn ? '680px' : '580px';
+              leftPosition = showVariableColumn ? '850px' : '650px';
             }
             
             return (
@@ -458,9 +458,9 @@ function AssetSection({
             />
           </td>
           {showVariableColumn && (
-            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '350px' }}></td>
           )}
-          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '550px' : '350px' }}></td>
           <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
         </tr>
       ) : (
@@ -475,9 +475,9 @@ function AssetSection({
             </button>
           </td>
           {showVariableColumn && (
-            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '280px' }}></td>
+            <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: '350px' }}></td>
           )}
-          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '480px' : '280px' }}></td>
+          <td className={`sticky z-10 ${bgColor} border-r border-gray-200`} style={{ left: showVariableColumn ? '550px' : '350px' }}></td>
           <td colSpan={languages.length - (showVariableColumn ? 2 : 1)} className={bgColor}></td>
         </tr>
       )}
