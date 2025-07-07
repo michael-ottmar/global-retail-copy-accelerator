@@ -16,11 +16,9 @@ export function StickyCell({
   children,
   onClick 
 }: StickyCellProps) {
-  const baseClasses = `px-4 py-2 border-gray-200 transition-all duration-200`;
+  const baseClasses = `px-4 py-2 transition-all duration-200 border-b border-r border-gray-200`;
   
   const stickyClasses = column.sticky ? 'sticky z-10' : '';
-  
-  const borderClasses = column.sticky ? 'border-r' : '';
   
   const style = column.sticky && position ? {
     left: `${position.left}px`,
@@ -31,7 +29,7 @@ export function StickyCell({
   
   return (
     <td
-      className={`${baseClasses} ${stickyClasses} ${borderClasses} ${className}`}
+      className={`${baseClasses} ${stickyClasses} ${className}`}
       style={style}
       onClick={onClick}
     >

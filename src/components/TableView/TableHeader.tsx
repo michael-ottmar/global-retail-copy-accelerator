@@ -27,20 +27,20 @@ export function TableHeader({ columns, columnPositions, languages }: TableHeader
           const lang = languages.find(l => l.code === column.id);
           
           const baseClasses = `
-            border-b border-gray-200 px-4 py-3 text-left text-xs font-medium 
+            border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-medium 
             uppercase tracking-wider transition-all duration-200
           `;
           
           const stickyClasses = column.sticky ? 'sticky z-20' : '';
           
           const colorClasses = column.isSource 
-            ? 'bg-blue-50 text-blue-700 border-r'
+            ? 'bg-blue-50 text-blue-700'
             : column.isSelected 
-            ? 'bg-purple-50 text-purple-700 border-r' 
+            ? 'bg-purple-50 text-purple-700' 
             : column.id === 'hierarchy'
-            ? 'bg-gray-50 text-gray-700 border-r'
+            ? 'bg-gray-50 text-gray-700'
             : column.id === 'variable'
-            ? 'bg-gray-100 text-gray-600 border-r'
+            ? 'bg-gray-100 text-gray-600'
             : 'bg-gray-50 text-gray-500';
           
           const style = column.sticky && position ? {

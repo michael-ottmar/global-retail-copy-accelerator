@@ -40,7 +40,10 @@ interface Store {
   // Deliverable management
   addAsset: (deliverableId: string, assetType: string) => void;
   removeAsset: (assetId: string) => void;
+  removeField: (assetId: string, fieldId: string) => void;
   addCustomField: (assetId: string, fieldName: string) => void;
+  reorderAsset: (deliverableId: string, fromAssetId: string, toAssetId: string) => void;
+  reorderField: (assetId: string, fromFieldId: string, toFieldId: string) => void;
   
   // Language management
   addLanguage: (languageCode: string) => void;
@@ -180,6 +183,75 @@ export const useStore = create<Store>((set, get) => ({
               ? { ...a, fields: [...a.fields, newField] }
               : a
           )
+        }))
+      }
+    };
+  }),
+  
+  removeField: (assetId, fieldId) => set((state) => {
+    if (!state.project) return state;
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => ({
+          ...d,
+          assets: d.assets.map(a => 
+            a.id === assetId 
+              ? { ...a, fields: a.fields.filter(f => f.id !== fieldId) }
+              : a
+          )
+        }))
+      }
+    };
+  }),
+  
+  reorderAsset: (deliverableId, fromAssetId, toAssetId) => set((state) => {
+    if (!state.project) return state;
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => {
+          if (d.id !== deliverableId) return d;
+          
+          const assets = [...d.assets];
+          const fromIndex = assets.findIndex(a => a.id === fromAssetId);
+          const toIndex = assets.findIndex(a => a.id === toAssetId);
+          
+          if (fromIndex === -1 || toIndex === -1) return d;
+          
+          const [movedAsset] = assets.splice(fromIndex, 1);
+          assets.splice(toIndex, 0, movedAsset);
+          
+          return { ...d, assets };
+        })
+      }
+    };
+  }),
+  
+  reorderField: (assetId, fromFieldId, toFieldId) => set((state) => {
+    if (!state.project) return state;
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => ({
+          ...d,
+          assets: d.assets.map(a => {
+            if (a.id !== assetId) return a;
+            
+            const fields = [...a.fields];
+            const fromIndex = fields.findIndex(f => f.id === fromFieldId);
+            const toIndex = fields.findIndex(f => f.id === toFieldId);
+            
+            if (fromIndex === -1 || toIndex === -1) return a;
+            
+            const [movedField] = fields.splice(fromIndex, 1);
+            fields.splice(toIndex, 0, movedField);
+            
+            return { ...a, fields };
+          })
         }))
       }
     };

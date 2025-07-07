@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2Icon, PlusIcon } from 'lucide-react';
+import { Trash2Icon, PlusIcon, GripVerticalIcon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Asset, Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -53,14 +53,32 @@ export function AssetRow({
   return (
     <>
       {/* Asset Header */}
-      <tr className={`${bgColor} border-t border-gray-100`}>
+      <tr 
+        className={`${bgColor} border-t border-gray-100 group hover:bg-gray-100/50 transition-colors`}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          // Store drag data
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          // Handle drop
+        }}
+      >
         <StickyCell
           column={columns[0]}
           position={columnPositions[columns[0].id]}
           className={bgColor}
         >
-          <div className="flex items-center justify-between group">
-            <span className="text-sm font-medium text-gray-700 ml-6">{asset.name}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GripVerticalIcon className="w-4 h-4 text-gray-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="text-sm font-medium text-gray-700">{asset.name}</span>
+            </div>
             <button
               onClick={() => removeAsset(asset.id)}
               className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"

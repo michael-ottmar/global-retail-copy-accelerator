@@ -34,14 +34,14 @@ export function EditableCell({
   }, [isEditing]);
   
   
-  const baseClasses = `px-4 py-2 border-gray-200 transition-all duration-200 group`;
+  const baseClasses = `px-4 py-2 transition-all duration-200 group border-b border-r border-gray-200`;
   
   const stickyClasses = column.sticky ? 'sticky z-10' : '';
   
   const colorClasses = isSource 
-    ? 'bg-blue-50 border-r' 
+    ? 'bg-blue-50' 
     : isSelected 
-    ? 'bg-purple-50 border-r'
+    ? 'bg-purple-50'
     : bgColor;
   
   const style = column.sticky && position ? {

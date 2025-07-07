@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EditIcon } from 'lucide-react';
+import { EditIcon, GripVerticalIcon, Trash2Icon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Field, Asset, Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -28,7 +28,7 @@ export function FieldRow({
   bgColor,
   onVariableHover
 }: FieldRowProps) {
-  const { translations, updateTranslation, showVariableColumn } = useStore();
+  const { translations, updateTranslation, showVariableColumn, removeField } = useStore();
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editingFieldName, setEditingFieldName] = useState(false);
   
@@ -50,8 +50,25 @@ export function FieldRow({
 
   return (
     <tr 
-      className={`${bgColor} hover:bg-gray-100/50 transition-colors`}
+      className={`${bgColor} hover:bg-gray-100/50 transition-colors group`}
       onMouseEnter={() => onVariableHover(variableName)}
+      draggable={field.type === 'custom'}
+      onDragStart={(e) => {
+        if (field.type === 'custom') {
+          e.dataTransfer.effectAllowed = 'move';
+        }
+      }}
+      onDragOver={(e) => {
+        if (field.type === 'custom') {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      }}
+      onDrop={(e) => {
+        if (field.type === 'custom') {
+          e.preventDefault();
+        }
+      }}
     >
       {columns.map((column) => {
         // Hierarchy column
@@ -63,34 +80,48 @@ export function FieldRow({
               position={columnPositions[column.id]}
               className={bgColor}
             >
-              <div className="flex items-center justify-between group ml-10">
-                {editingFieldName && field.type === 'custom' ? (
-                  <input
-                    type="text"
-                    value={field.customName}
-                    onChange={() => {/* TODO: Update field name */}}
-                    onBlur={() => setEditingFieldName(false)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === 'Escape') {
-                        setEditingFieldName(false);
-                      }
-                    }}
-                    className="text-sm px-1 py-0.5 border border-purple-500 rounded focus:outline-none"
-                    autoFocus
-                  />
-                ) : (
-                  <span className="text-sm text-gray-600">
-                    {field.customName || field.name}
-                  </span>
-                )}
+              <div className="flex items-center justify-between ml-6">
+                <div className="flex items-center gap-2">
+                  {field.type === 'custom' && (
+                    <GripVerticalIcon className="w-4 h-4 text-gray-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                  {editingFieldName && field.type === 'custom' ? (
+                    <input
+                      type="text"
+                      value={field.customName}
+                      onChange={() => {/* TODO: Update field name */}}
+                      onBlur={() => setEditingFieldName(false)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                          setEditingFieldName(false);
+                        }
+                      }}
+                      className="text-sm px-1 py-0.5 border border-purple-500 rounded focus:outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-600">
+                      {field.customName || field.name}
+                    </span>
+                  )}
+                </div>
                 {field.type === 'custom' && (
-                  <button
-                    onClick={() => setEditingFieldName(true)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
-                    title="Edit field name"
-                  >
-                    <EditIcon className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setEditingFieldName(true)}
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
+                      title="Edit field name"
+                    >
+                      <EditIcon className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => removeField(asset.id, field.id)}
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
+                      title="Delete field"
+                    >
+                      <Trash2Icon className="w-3 h-3" />
+                    </button>
+                  </div>
                 )}
               </div>
             </StickyCell>
