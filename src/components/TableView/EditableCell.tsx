@@ -5,7 +5,6 @@ interface EditableCellProps {
   column: ColumnConfig;
   position?: ColumnPosition;
   value: string;
-  status?: 'empty' | 'in_progress' | 'completed' | 'ai_generated';
   isEditing: boolean;
   isSource?: boolean;
   isSelected?: boolean;
@@ -18,7 +17,6 @@ export function EditableCell({
   column,
   position,
   value,
-  status = 'empty',
   isEditing,
   isSource,
   isSelected,
@@ -35,14 +33,6 @@ export function EditableCell({
     }
   }, [isEditing]);
   
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-500';
-      case 'in_progress': return 'bg-yellow-500';
-      case 'ai_generated': return 'bg-purple-500';
-      default: return 'bg-gray-300';
-    }
-  };
   
   const baseClasses = `px-4 py-2 border-gray-200 transition-all duration-200 group`;
   
@@ -67,8 +57,7 @@ export function EditableCell({
       style={style}
       onClick={!isEditing ? onClick : undefined}
     >
-      <div className="flex items-start gap-2">
-        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getStatusColor(status)}`} />
+      <div className="w-full">
         {isEditing ? (
           <textarea
             ref={inputRef}
@@ -100,8 +89,10 @@ export function EditableCell({
           />
         ) : (
           <div
-            className="flex-1 min-h-[20px] cursor-pointer rounded px-2 py-1 text-sm
-                     hover:bg-gray-900/5 transition-colors duration-150"
+            className="min-h-[20px] cursor-pointer rounded px-2 py-1 text-sm
+                     hover:bg-gray-900/5 transition-colors duration-150
+                     break-words overflow-wrap-anywhere max-w-full"
+            style={{ wordBreak: 'break-word' }}
           >
             {value || <span className="text-gray-400 italic">Click to edit</span>}
           </div>

@@ -140,6 +140,18 @@ export function Header() {
                 ))}
               </select>
 
+              {/* Deliverables Filter */}
+              <select
+                value={selectedDeliverable || ''}
+                onChange={(e) => setSelectedDeliverable(e.target.value || null)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">All Deliverables</option>
+                {project?.deliverables.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+
               {/* Search */}
               <div className="relative">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -176,18 +188,6 @@ export function Header() {
                   <RedoIcon className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Deliverables Filter */}
-              <select
-                value={selectedDeliverable || ''}
-                onChange={(e) => setSelectedDeliverable(e.target.value || null)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">All Deliverables</option>
-                {project?.deliverables.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
 
               {/* Add Language Button */}
               <button 

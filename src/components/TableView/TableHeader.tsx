@@ -1,5 +1,6 @@
 import type { ColumnConfig, ColumnPosition } from './types';
 import type { Language } from '../../types';
+import { useColumnStatus } from './hooks/useColumnStatus';
 
 interface TableHeaderProps {
   columns: ColumnConfig[];
@@ -8,6 +9,16 @@ interface TableHeaderProps {
 }
 
 export function TableHeader({ columns, columnPositions, languages }: TableHeaderProps) {
+  const columnStatuses = useColumnStatus();
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-500';
+      case 'in_progress': return 'bg-yellow-500';
+      case 'mixed': return 'bg-orange-500';
+      default: return 'bg-gray-300';
+    }
+  };
   return (
     <thead className="bg-gray-50">
       <tr>
@@ -48,8 +59,13 @@ export function TableHeader({ columns, columnPositions, languages }: TableHeader
               className={`${baseClasses} ${stickyClasses} ${colorClasses}`}
               style={style}
             >
-              {lang && <span className="mr-2">{lang.flag}</span>}
-              {column.label}
+              <div className="flex items-center gap-2">
+                {lang && <span>{lang.flag}</span>}
+                <span>{column.label}</span>
+                {lang && columnStatuses[lang.code] && (
+                  <div className={`w-2 h-2 rounded-full ${getStatusColor(columnStatuses[lang.code])}`} />
+                )}
+              </div>
             </th>
           );
         })}

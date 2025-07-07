@@ -45,28 +45,54 @@
   border-color: rgba(147, 51, 234, 0.5);
 }
 
-/* Status indicator animations */
-.status-indicator {
-  transition: all 0.2s ease-in-out;
+/* Column status indicators */
+.column-status {
+  transition: all 0.3s ease-in-out;
 }
 
-.status-indicator.pulse {
-  animation: pulse 2s infinite;
+.column-status:hover {
+  transform: scale(1.2);
 }
 
-@keyframes pulse {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Text wrapping for cells */
+.cell-content {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.4;
+}
+
+/* Limit cell height for better scanning */
+.cell-content-wrapper {
+  max-height: 4.5rem; /* ~3 lines of text */
+  overflow: hidden;
+  position: relative;
+}
+
+.cell-content-wrapper.expanded {
+  max-height: none;
+}
+
+/* Fade out for truncated content */
+.cell-content-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, transparent, white);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.cell-content-wrapper.has-overflow::after {
+  opacity: 1;
+}
+
+.cell-content-wrapper.expanded::after {
+  opacity: 0;
 }
 
 /* Variable hover effect */

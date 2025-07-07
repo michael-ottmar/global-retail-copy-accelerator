@@ -124,7 +124,6 @@ export function FieldRow({
               column={column}
               position={columnPositions[column.id]}
               value={translation?.value || ''}
-              status={translation?.status}
               isEditing={isEditing}
               isSource={column.isSource}
               isSelected={column.isSelected}
