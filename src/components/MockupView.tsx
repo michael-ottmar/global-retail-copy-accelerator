@@ -30,8 +30,9 @@ export function MockupView() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-50">
-      <div className="p-6 space-y-6">
+    <div className="flex-1 flex flex-col h-full bg-gray-50">
+      <div className="flex-1 overflow-auto">
+        <div className="p-6 space-y-6">
         {/* PDP Section */}
         {pdp && (
           <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm">
@@ -120,7 +121,7 @@ export function MockupView() {
                 <h1 className="text-2xl font-bold mb-4">
                   <EditableField
                     fieldId={productDetails.fields.find(f => f.type === 'productName')?.id || ''}
-                    languageCode={selectedLanguage}
+                    languageCode={currentLanguage}
                     placeholder="[Product Name]"
                     className="text-2xl font-bold"
                   />
@@ -129,7 +130,7 @@ export function MockupView() {
                 <div className="mb-6">
                   <EditableField
                     fieldId={productDetails.fields.find(f => f.type === 'productDetails')?.id || ''}
-                    languageCode={selectedLanguage}
+                    languageCode={currentLanguage}
                     placeholder="[Product Details]"
                     className="text-gray-700"
                     multiline={true}
@@ -267,6 +268,7 @@ export function MockupView() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

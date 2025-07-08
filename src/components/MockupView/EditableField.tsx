@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
-import { CheckIcon, XIcon } from 'lucide-react';
 
 interface EditableFieldProps {
   fieldId: string;
@@ -44,63 +43,38 @@ export function EditableField({
     setIsEditing(false);
   };
   
-  const handleCancel = () => {
-    setLocalValue(value);
-    setIsEditing(false);
-  };
-  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !multiline) {
       e.preventDefault();
       handleSave();
     } else if (e.key === 'Escape') {
-      handleCancel();
+      e.preventDefault();
+      setLocalValue(value);
+      setIsEditing(false);
     }
   };
   
   if (isEditing) {
-    return (
-      <div className="relative inline-flex items-center gap-1">
-        {multiline ? (
-          <textarea
-            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-            value={localValue}
-            onChange={(e) => setLocalValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 ${className}`}
-            rows={3}
-          />
-        ) : (
-          <input
-            ref={inputRef as React.RefObject<HTMLInputElement>}
-            type="text"
-            value={localValue}
-            onChange={(e) => setLocalValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 ${className}`}
-          />
-        )}
-        <div className="absolute -right-20 flex gap-1">
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleSave}
-            className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
-            title="Save"
-          >
-            <CheckIcon className="w-3 h-3" />
-          </button>
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleCancel}
-            className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-            title="Cancel"
-          >
-            <XIcon className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
+    return multiline ? (
+      <textarea
+        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleSave}
+        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none ${className}`}
+        rows={3}
+      />
+    ) : (
+      <input
+        ref={inputRef as React.RefObject<HTMLInputElement>}
+        type="text"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleSave}
+        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 ${className}`}
+      />
     );
   }
   
