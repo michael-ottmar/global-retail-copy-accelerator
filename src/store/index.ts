@@ -42,6 +42,8 @@ interface Store {
   removeAsset: (assetId: string) => void;
   removeField: (assetId: string, fieldId: string) => void;
   addCustomField: (assetId: string, fieldName: string) => void;
+  updateAssetName: (assetId: string, name: string) => void;
+  updateFieldName: (assetId: string, fieldId: string, name: string) => void;
   reorderAsset: (deliverableId: string, fromAssetId: string, toAssetId: string) => void;
   reorderField: (assetId: string, fromFieldId: string, toFieldId: string) => void;
   
@@ -199,6 +201,49 @@ export const useStore = create<Store>((set, get) => ({
           assets: d.assets.map(a => 
             a.id === assetId 
               ? { ...a, fields: a.fields.filter(f => f.id !== fieldId) }
+              : a
+          )
+        }))
+      }
+    };
+  }),
+  
+  updateAssetName: (assetId, name) => set((state) => {
+    if (!state.project) return state;
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => ({
+          ...d,
+          assets: d.assets.map(a => 
+            a.id === assetId 
+              ? { ...a, name }
+              : a
+          )
+        }))
+      }
+    };
+  }),
+  
+  updateFieldName: (assetId, fieldId, name) => set((state) => {
+    if (!state.project) return state;
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => ({
+          ...d,
+          assets: d.assets.map(a => 
+            a.id === assetId 
+              ? { 
+                  ...a, 
+                  fields: a.fields.map(f => 
+                    f.id === fieldId 
+                      ? { ...f, customName: name }
+                      : f
+                  )
+                }
               : a
           )
         }))

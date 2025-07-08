@@ -28,9 +28,10 @@ export function FieldRow({
   bgColor,
   onVariableHover
 }: FieldRowProps) {
-  const { translations, updateTranslation, showVariableColumn, removeField } = useStore();
+  const { translations, updateTranslation, showVariableColumn, removeField, updateFieldName } = useStore();
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editingFieldName, setEditingFieldName] = useState(false);
+  const [fieldName, setFieldName] = useState(field.customName || field.name);
   
   const variableName = formatVariableName(deliverable, asset, field);
   
@@ -52,22 +53,16 @@ export function FieldRow({
     <tr 
       className={`${bgColor} hover:bg-gray-100/50 transition-colors group`}
       onMouseEnter={() => onVariableHover(variableName)}
-      draggable={field.type === 'custom'}
+      draggable
       onDragStart={(e) => {
-        if (field.type === 'custom') {
-          e.dataTransfer.effectAllowed = 'move';
-        }
+        e.dataTransfer.effectAllowed = 'move';
       }}
       onDragOver={(e) => {
-        if (field.type === 'custom') {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-        }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
       }}
       onDrop={(e) => {
-        if (field.type === 'custom') {
-          e.preventDefault();
-        }
+        e.preventDefault();
       }}
     >
       {columns.map((column) => {
@@ -82,17 +77,23 @@ export function FieldRow({
             >
               <div className="flex items-center justify-between ml-6">
                 <div className="flex items-center gap-2">
-                  {field.type === 'custom' && (
-                    <GripVerticalIcon className="w-4 h-4 text-gray-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity" />
-                  )}
-                  {editingFieldName && field.type === 'custom' ? (
+                  <GripVerticalIcon className="w-4 h-4 text-gray-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {editingFieldName ? (
                     <input
                       type="text"
-                      value={field.customName}
-                      onChange={() => {/* TODO: Update field name */}}
-                      onBlur={() => setEditingFieldName(false)}
+                      value={fieldName}
+                      onChange={(e) => setFieldName(e.target.value)}
+                      onBlur={() => {
+                        updateFieldName(asset.id, field.id, fieldName);
+                        setEditingFieldName(false);
+                      }}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === 'Escape') {
+                        if (e.key === 'Enter') {
+                          updateFieldName(asset.id, field.id, fieldName);
+                          setEditingFieldName(false);
+                        }
+                        if (e.key === 'Escape') {
+                          setFieldName(field.customName || field.name);
                           setEditingFieldName(false);
                         }
                       }}
@@ -105,24 +106,22 @@ export function FieldRow({
                     </span>
                   )}
                 </div>
-                {field.type === 'custom' && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setEditingFieldName(true)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
-                      title="Edit field name"
-                    >
-                      <EditIcon className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => removeField(asset.id, field.id)}
-                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
-                      title="Delete field"
-                    >
-                      <Trash2Icon className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setEditingFieldName(true)}
+                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
+                    title="Edit field name"
+                  >
+                    <EditIcon className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => removeField(asset.id, field.id)}
+                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
+                    title="Delete field"
+                  >
+                    <Trash2Icon className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             </StickyCell>
           );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2Icon, PlusIcon, GripVerticalIcon } from 'lucide-react';
+import { Trash2Icon, PlusIcon, GripVerticalIcon, EditIcon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Asset, Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -27,9 +27,11 @@ export function AssetRow({
   searchQuery,
   onVariableHover
 }: AssetRowProps) {
-  const { removeAsset, addCustomField } = useStore();
+  const { removeAsset, addCustomField, updateAssetName } = useStore();
   const [addingField, setAddingField] = useState(false);
   const [newFieldName, setNewFieldName] = useState('');
+  const [editingAssetName, setEditingAssetName] = useState(false);
+  const [assetName, setAssetName] = useState(asset.name);
   
   const bgColor = assetIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
   
@@ -77,15 +79,48 @@ export function AssetRow({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GripVerticalIcon className="w-4 h-4 text-gray-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="text-sm font-medium text-gray-700">{asset.name}</span>
+              {editingAssetName ? (
+                <input
+                  type="text"
+                  value={assetName}
+                  onChange={(e) => setAssetName(e.target.value)}
+                  onBlur={() => {
+                    updateAssetName(asset.id, assetName);
+                    setEditingAssetName(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      updateAssetName(asset.id, assetName);
+                      setEditingAssetName(false);
+                    }
+                    if (e.key === 'Escape') {
+                      setAssetName(asset.name);
+                      setEditingAssetName(false);
+                    }
+                  }}
+                  className="text-sm font-bold px-1 py-0.5 border border-purple-500 rounded focus:outline-none"
+                  autoFocus
+                />
+              ) : (
+                <span className="text-sm font-bold text-gray-700">{asset.name}</span>
+              )}
             </div>
-            <button
-              onClick={() => removeAsset(asset.id)}
-              className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
-              title="Remove asset"
-            >
-              <Trash2Icon className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setEditingAssetName(true)}
+                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
+                title="Edit asset name"
+              >
+                <EditIcon className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => removeAsset(asset.id)}
+                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
+                title="Remove asset"
+              >
+                <Trash2Icon className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </StickyCell>
         {columns.slice(1).map(column => (
