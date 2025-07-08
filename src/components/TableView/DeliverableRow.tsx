@@ -14,6 +14,7 @@ interface DeliverableRowProps {
   onToggle: () => void;
   searchQuery: string;
   onVariableHover: (variable: string) => void;
+  dragAndDrop: any;
 }
 
 export function DeliverableRow({
@@ -24,7 +25,8 @@ export function DeliverableRow({
   isExpanded,
   onToggle,
   searchQuery,
-  onVariableHover
+  onVariableHover,
+  dragAndDrop
 }: DeliverableRowProps) {
   const { addAsset } = useStore();
 
@@ -83,6 +85,7 @@ export function DeliverableRow({
               assetIndex={assetIndex}
               searchQuery={searchQuery}
               onVariableHover={onVariableHover}
+              dragAndDrop={dragAndDrop}
             />
           ))}
           
@@ -93,11 +96,11 @@ export function DeliverableRow({
               position={columnPositions[columns[0].id]}
             >
               <button
-                onClick={() => addAsset(deliverable.id, deliverable.type === 'pdp' ? 'module' : 'module')}
+                onClick={() => addAsset(deliverable.id, deliverable.type === 'pdp' ? 'module' : deliverable.type === 'banner' ? 'banner' : 'gallery')}
                 className="flex items-center text-sm text-purple-600 hover:text-purple-700 ml-6 py-1"
               >
                 <PlusIcon className="w-4 h-4 mr-1" />
-                Add {deliverable.type === 'pdp' ? 'Module' : 'Asset'}
+                Add {deliverable.type === 'pdp' ? 'Module' : deliverable.type === 'banner' ? 'Banner' : 'Gallery Image'}
               </button>
             </StickyCell>
             {columns.slice(1).map(column => (

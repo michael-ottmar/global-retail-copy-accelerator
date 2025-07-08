@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
 import { DeliverableRow } from './DeliverableRow';
+import { useDragAndDrop } from './hooks/useDragAndDrop';
 
 interface TableBodyProps {
   columns: ColumnConfig[];
@@ -23,6 +24,8 @@ export function TableBody({
   const [expandedDeliverables, setExpandedDeliverables] = useState<Set<string>>(
     new Set(['pdp-1']) // Default expand first deliverable
   );
+  
+  const dragAndDrop = useDragAndDrop();
 
   const toggleDeliverable = (deliverableId: string) => {
     setExpandedDeliverables(prev => {
@@ -49,6 +52,7 @@ export function TableBody({
           onToggle={() => toggleDeliverable(deliverable.id)}
           searchQuery={searchQuery}
           onVariableHover={onVariableHover}
+          dragAndDrop={dragAndDrop}
         />
       ))}
     </tbody>

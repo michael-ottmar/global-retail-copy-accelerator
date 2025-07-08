@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2Icon, PlusIcon, GripVerticalIcon, EditIcon } from 'lucide-react';
+import { Trash2Icon, PlusIcon, GripVerticalIcon, EditIcon, CopyIcon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Asset, Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -15,6 +15,7 @@ interface AssetRowProps {
   assetIndex: number;
   searchQuery: string;
   onVariableHover: (variable: string) => void;
+  dragAndDrop: any;
 }
 
 export function AssetRow({
@@ -25,9 +26,10 @@ export function AssetRow({
   languages,
   assetIndex,
   searchQuery,
-  onVariableHover
+  onVariableHover,
+  dragAndDrop
 }: AssetRowProps) {
-  const { removeAsset, addCustomField, updateAssetName } = useStore();
+  const { removeAsset, addCustomField, updateAssetName, duplicateAsset } = useStore();
   const [addingField, setAddingField] = useState(false);
   const [newFieldName, setNewFieldName] = useState('');
   const [editingAssetName, setEditingAssetName] = useState(false);
@@ -56,20 +58,28 @@ export function AssetRow({
     <>
       {/* Asset Header */}
       <tr 
-        className={`${bgColor} border-t border-gray-100 group hover:bg-gray-100/50 transition-colors`}
+        className={`${bgColor} border-t border-gray-100 group hover:bg-gray-100/50 transition-colors ${
+          dragAndDrop.isDragging({ type: 'asset', assetId: asset.id, deliverableId: deliverable.id }) ? 'opacity-50' : ''
+        } ${
+          dragAndDrop.isDragOver({ type: 'asset', assetId: asset.id, deliverableId: deliverable.id }) ? 'border-t-2 border-t-purple-500' : ''
+        }`}
         draggable
-        onDragStart={(e) => {
-          e.dataTransfer.effectAllowed = 'move';
-          // Store drag data
-        }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          // Handle drop
-        }}
+        onDragStart={() => dragAndDrop.handleDragStart({ 
+          type: 'asset', 
+          assetId: asset.id, 
+          deliverableId: deliverable.id 
+        })}
+        onDragOver={(e) => dragAndDrop.handleDragOver(e, { 
+          type: 'asset', 
+          assetId: asset.id, 
+          deliverableId: deliverable.id 
+        })}
+        onDrop={(e) => dragAndDrop.handleDrop(e, { 
+          type: 'asset', 
+          assetId: asset.id, 
+          deliverableId: deliverable.id 
+        })}
+        onDragEnd={dragAndDrop.handleDragEnd}
       >
         <StickyCell
           column={columns[0]}
@@ -114,6 +124,13 @@ export function AssetRow({
                 <EditIcon className="w-3 h-3" />
               </button>
               <button
+                onClick={() => duplicateAsset?.(deliverable.id, asset.id)}
+                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
+                title="Duplicate asset"
+              >
+                <CopyIcon className="w-3 h-3" />
+              </button>
+              <button
                 onClick={() => removeAsset(asset.id)}
                 className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 p-1"
                 title="Remove asset"
@@ -145,6 +162,7 @@ export function AssetRow({
           languages={languages}
           bgColor={bgColor}
           onVariableHover={onVariableHover}
+          dragAndDrop={dragAndDrop}
         />
       ))}
       

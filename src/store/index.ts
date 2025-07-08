@@ -44,6 +44,7 @@ interface Store {
   addCustomField: (assetId: string, fieldName: string) => void;
   updateAssetName: (assetId: string, name: string) => void;
   updateFieldName: (assetId: string, fieldId: string, name: string) => void;
+  duplicateAsset: (deliverableId: string, assetId: string) => void;
   reorderAsset: (deliverableId: string, fromAssetId: string, toAssetId: string) => void;
   reorderField: (assetId: string, fromFieldId: string, toFieldId: string) => void;
   
@@ -248,6 +249,53 @@ export const useStore = create<Store>((set, get) => ({
           )
         }))
       }
+    };
+  }),
+  
+  duplicateAsset: (deliverableId, assetId) => set((state) => {
+    if (!state.project) return state;
+    
+    const deliverable = state.project.deliverables.find(d => d.id === deliverableId);
+    const assetToDuplicate = deliverable?.assets.find(a => a.id === assetId);
+    
+    if (!assetToDuplicate) return state;
+    
+    const newAsset: Asset = {
+      ...assetToDuplicate,
+      id: `${Date.now()}`,
+      name: `${assetToDuplicate.name} Copy`,
+      fields: assetToDuplicate.fields.map(field => ({
+        ...field,
+        id: `${Date.now()}-${field.id}`
+      }))
+    };
+    
+    // Also create translations for the new fields
+    const newTranslations: Translation[] = [];
+    newAsset.fields.forEach(field => {
+      state.project!.languages.forEach(language => {
+        newTranslations.push({
+          fieldId: field.id,
+          languageCode: language.code,
+          value: '',
+          status: 'empty' as const
+        });
+      });
+    });
+    
+    return {
+      project: {
+        ...state.project,
+        deliverables: state.project.deliverables.map(d => 
+          d.id === deliverableId 
+            ? { 
+                ...d, 
+                assets: [...d.assets, newAsset]
+              }
+            : d
+        )
+      },
+      translations: [...state.translations, ...newTranslations]
     };
   }),
   

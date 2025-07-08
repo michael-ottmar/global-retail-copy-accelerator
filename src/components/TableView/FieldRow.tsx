@@ -16,6 +16,7 @@ interface FieldRowProps {
   languages: Language[];
   bgColor: string;
   onVariableHover: (variable: string) => void;
+  dragAndDrop?: any;
 }
 
 export function FieldRow({
@@ -26,7 +27,8 @@ export function FieldRow({
   columnPositions,
   languages,
   bgColor,
-  onVariableHover
+  onVariableHover,
+  dragAndDrop
 }: FieldRowProps) {
   const { translations, updateTranslation, showVariableColumn, removeField, updateFieldName } = useStore();
   const [editingCell, setEditingCell] = useState<string | null>(null);
@@ -51,19 +53,32 @@ export function FieldRow({
 
   return (
     <tr 
-      className={`${bgColor} hover:bg-gray-100/50 transition-colors group`}
+      className={`${bgColor} hover:bg-gray-100/50 transition-colors group ${
+        dragAndDrop?.isDragging?.({ type: 'field', assetId: asset.id, fieldId: field.id, deliverableId: deliverable.id }) ? 'opacity-50' : ''
+      } ${
+        dragAndDrop?.isDragOver?.({ type: 'field', assetId: asset.id, fieldId: field.id, deliverableId: deliverable.id }) ? 'border-t-2 border-t-purple-500' : ''
+      }`}
       onMouseEnter={() => onVariableHover(variableName)}
       draggable
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = 'move';
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-      }}
+      onDragStart={() => dragAndDrop?.handleDragStart?.({ 
+        type: 'field', 
+        assetId: asset.id, 
+        fieldId: field.id,
+        deliverableId: deliverable.id 
+      })}
+      onDragOver={(e) => dragAndDrop?.handleDragOver?.(e, { 
+        type: 'field', 
+        assetId: asset.id, 
+        fieldId: field.id,
+        deliverableId: deliverable.id 
+      })}
+      onDrop={(e) => dragAndDrop?.handleDrop?.(e, { 
+        type: 'field', 
+        assetId: asset.id, 
+        fieldId: field.id,
+        deliverableId: deliverable.id 
+      })}
+      onDragEnd={dragAndDrop?.handleDragEnd}
     >
       {columns.map((column) => {
         // Hierarchy column
