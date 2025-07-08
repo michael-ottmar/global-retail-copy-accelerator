@@ -16,6 +16,13 @@ interface Store {
   lastSaved: Date | null;
   showVariableColumn: boolean;
   
+  // Section toggles (enabled by default)
+  sectionToggles: {
+    pdp: boolean;
+    banners: boolean;
+    crm: boolean;
+  };
+  
   // Undo/Redo
   history: Translation[][];
   historyIndex: number;
@@ -30,6 +37,7 @@ interface Store {
   setSearchQuery: (query: string) => void;
   setAddingLanguage: (adding: boolean) => void;
   setShowVariableColumn: (show: boolean) => void;
+  toggleSection: (section: 'pdp' | 'banners' | 'crm') => void;
   
   // Undo/Redo
   undo: () => void;
@@ -67,6 +75,11 @@ export const useStore = create<Store>((set, get) => ({
   addingLanguage: false,
   lastSaved: null,
   showVariableColumn: false,
+  sectionToggles: {
+    pdp: true,
+    banners: true,
+    crm: true
+  },
   history: [[]],
   historyIndex: 0,
   
@@ -99,6 +112,13 @@ export const useStore = create<Store>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   setAddingLanguage: (adding) => set({ addingLanguage: adding }),
   setShowVariableColumn: (show) => set({ showVariableColumn: show }),
+  
+  toggleSection: (section) => set((state) => ({
+    sectionToggles: {
+      ...state.sectionToggles,
+      [section]: !state.sectionToggles[section]
+    }
+  })),
   
   // Undo/Redo
   undo: () => set((state) => {
@@ -143,11 +163,28 @@ export const useStore = create<Store>((set, get) => ({
     return {
       project: {
         ...state.project,
-        deliverables: state.project.deliverables.map(d => 
-          d.id === deliverableId 
-            ? { ...d, assets: [...d.assets, newAsset] }
-            : d
-        )
+        deliverables: state.project.deliverables.map(d => {
+          if (d.id !== deliverableId) return d;
+          
+          // For gallery images, insert after the last gallery image
+          if (assetType === 'gallery') {
+            let lastGalleryIndex = -1;
+            for (let i = d.assets.length - 1; i >= 0; i--) {
+              if (d.assets[i].type === 'gallery') {
+                lastGalleryIndex = i;
+                break;
+              }
+            }
+            if (lastGalleryIndex !== -1) {
+              const newAssets = [...d.assets];
+              newAssets.splice(lastGalleryIndex + 1, 0, newAsset);
+              return { ...d, assets: newAssets };
+            }
+          }
+          
+          // For other types or if no gallery images exist, add at the end
+          return { ...d, assets: [...d.assets, newAsset] };
+        })
       }
     };
   }),

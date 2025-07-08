@@ -4,6 +4,25 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Frozen header styles */
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: rgb(249 250 251); /* bg-gray-50 */
+}
+
+thead::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
+  pointer-events: none;
+}
+
 /* Smooth transitions for sticky columns */
 .sticky-cell {
   transition: box-shadow 0.2s ease-in-out;

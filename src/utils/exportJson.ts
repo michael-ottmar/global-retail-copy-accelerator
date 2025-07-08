@@ -1,6 +1,10 @@
 import type { Project, Translation } from '../types';
 
-export function exportToFigmaJSON(project: Project, translations: Translation[]): string {
+export function exportToFigmaJSON(
+  project: Project, 
+  translations: Translation[],
+  sectionToggles?: { pdp: boolean; banners: boolean; crm: boolean }
+): string {
   const figmaVariables: any = {
     version: '1.0',
     name: project.name,
@@ -16,8 +20,25 @@ export function exportToFigmaJSON(project: Project, translations: Translation[])
     };
   });
 
+  // Helper to check if deliverable should be included
+  const shouldIncludeDeliverable = (deliverableType: string): boolean => {
+    if (!sectionToggles) return true;
+    
+    switch (deliverableType) {
+      case 'pdp': return sectionToggles.pdp;
+      case 'banner': return sectionToggles.banners;
+      case 'crm': return sectionToggles.crm;
+      default: return true;
+    }
+  };
+
   // Process each deliverable
   project.deliverables.forEach(deliverable => {
+    // Skip disabled sections
+    if (!shouldIncludeDeliverable(deliverable.type)) {
+      return;
+    }
+    
     deliverable.assets.forEach(asset => {
       asset.fields.forEach(field => {
         // Create variable key based on the hierarchy

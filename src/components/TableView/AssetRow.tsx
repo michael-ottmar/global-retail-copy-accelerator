@@ -16,6 +16,7 @@ interface AssetRowProps {
   searchQuery: string;
   onVariableHover: (variable: string) => void;
   dragAndDrop: any;
+  opacity?: number;
 }
 
 export function AssetRow({
@@ -27,7 +28,8 @@ export function AssetRow({
   assetIndex,
   searchQuery,
   onVariableHover,
-  dragAndDrop
+  dragAndDrop,
+  opacity = 1
 }: AssetRowProps) {
   const { removeAsset, addCustomField, updateAssetName, duplicateAsset } = useStore();
   const [addingField, setAddingField] = useState(false);
@@ -63,6 +65,7 @@ export function AssetRow({
         } ${
           dragAndDrop.isDragOver({ type: 'asset', assetId: asset.id, deliverableId: deliverable.id }) ? 'border-t-2 border-t-purple-500' : ''
         }`}
+        style={{ opacity }}
         draggable
         onDragStart={() => dragAndDrop.handleDragStart({ 
           type: 'asset', 
@@ -161,11 +164,12 @@ export function AssetRow({
           bgColor={bgColor}
           onVariableHover={onVariableHover}
           dragAndDrop={dragAndDrop}
+          opacity={opacity}
         />
       ))}
       
       {/* Add Field Row */}
-      <tr className={bgColor}>
+      <tr className={bgColor} style={{ opacity }}>
         <StickyCell
           column={columns[0]}
           position={columnPositions[columns[0].id]}

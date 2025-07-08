@@ -17,6 +17,7 @@ interface FieldRowProps {
   bgColor: string;
   onVariableHover: (variable: string) => void;
   dragAndDrop?: any;
+  opacity?: number;
 }
 
 export function FieldRow({
@@ -28,7 +29,8 @@ export function FieldRow({
   languages,
   bgColor,
   onVariableHover,
-  dragAndDrop
+  dragAndDrop,
+  opacity = 1
 }: FieldRowProps) {
   const { translations, updateTranslation, showVariableColumn, removeField, updateFieldName } = useStore();
   const [editingCell, setEditingCell] = useState<string | null>(null);
@@ -58,6 +60,7 @@ export function FieldRow({
       } ${
         dragAndDrop?.isDragOver?.({ type: 'field', assetId: asset.id, fieldId: field.id, deliverableId: deliverable.id }) ? 'border-t-2 border-t-purple-500' : ''
       }`}
+      style={{ opacity }}
       onMouseEnter={() => onVariableHover(variableName)}
       draggable
       onDragStart={() => dragAndDrop?.handleDragStart?.({ 

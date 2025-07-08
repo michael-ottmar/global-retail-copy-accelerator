@@ -33,7 +33,8 @@ export function Header() {
     canUndo,
     canRedo,
     showVariableColumn,
-    setShowVariableColumn
+    setShowVariableColumn,
+    sectionToggles
   } = useStore();
   
   const [showAutoSaved, setShowAutoSaved] = useState(false);
@@ -49,7 +50,7 @@ export function Header() {
   const handleExportJSON = () => {
     if (!project) return;
     
-    const jsonContent = exportToFigmaJSON(project, translations);
+    const jsonContent = exportToFigmaJSON(project, translations, sectionToggles);
     const timestamp = new Date().toISOString().split('T')[0];
     downloadJSON(jsonContent, `${project.name.replace(/\s+/g, '-')}_${timestamp}.json`);
   };
