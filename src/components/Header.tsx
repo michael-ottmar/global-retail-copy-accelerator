@@ -10,8 +10,7 @@ import {
   RefreshCwIcon,
   CheckIcon,
   UndoIcon,
-  RedoIcon,
-  CodeIcon
+  RedoIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { useState, useEffect } from 'react';
@@ -133,9 +132,10 @@ export function Header() {
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
+                <option value="all">All languages</option>
                 {project?.languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
-                    {lang.code.toUpperCase()}
+                    {lang.flag} {lang.code.toUpperCase()}
                   </option>
                 ))}
               </select>
@@ -196,24 +196,22 @@ export function Header() {
               >
                 Add a language column
               </button>
-
-              {/* Variable Column Toggle */}
-              <button
-                onClick={() => setShowVariableColumn(!showVariableColumn)}
-                className={`flex items-center text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                  showVariableColumn 
-                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
-                    : 'text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <CodeIcon className="w-4 h-4 mr-1.5" />
-                {showVariableColumn ? 'Hide' : 'Show'} Variables
-              </button>
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-600">
-              {/* Stats */}
-              <span>{totalVariables} variables</span>
+              {/* Variable Toggle */}
+              <div className="flex items-center gap-2">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showVariableColumn}
+                    onChange={(e) => setShowVariableColumn(e.target.checked)}
+                  />
+                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+                <span>{totalVariables} variables</span>
+              </div>
               <span>•</span>
               <span>{project?.languages.length} languages</span>
               <span>•</span>

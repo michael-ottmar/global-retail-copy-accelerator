@@ -61,7 +61,7 @@ export const useStore = create<Store>((set, get) => ({
   project: null,
   translations: [],
   currentView: 'table',
-  selectedLanguage: 'en',
+  selectedLanguage: 'all',
   selectedDeliverable: null,
   searchQuery: '',
   addingLanguage: false,

@@ -42,20 +42,14 @@ export function TableView() {
     { id: 'hierarchy', width: 350, sticky: true, label: 'Deliverable / Asset / Field' },
     ...(showVariableColumn ? [{ id: 'variable', width: calculateVariableColumnWidth(), sticky: true, label: 'Variable' }] : []),
     { id: 'en', width: 300, sticky: true, label: 'English (Source)', isSource: true },
-    ...(selectedLanguage !== 'en' ? [{
-      id: selectedLanguage,
-      width: 300,
-      sticky: true,
-      label: project?.languages.find(l => l.code === selectedLanguage)?.name || '',
-      isSelected: true
-    }] : []),
     ...(project?.languages
-      .filter(lang => lang.code !== 'en' && lang.code !== selectedLanguage)
+      .filter(lang => lang.code !== 'en')
       .map(lang => ({
         id: lang.code,
         width: 300,
-        sticky: false,
-        label: lang.name
+        sticky: selectedLanguage === lang.code && selectedLanguage !== 'all',
+        label: lang.name,
+        isSelected: selectedLanguage === lang.code && selectedLanguage !== 'all'
       })) || [])
   ];
   
@@ -63,7 +57,7 @@ export function TableView() {
   const { columnPositions, updateMeasurements } = useColumnMeasurements(columns);
   
   // Handle smooth scrolling to selected language
-  useTableScroll(containerRef as React.RefObject<HTMLDivElement>, selectedLanguage, columnPositions);
+  useTableScroll(containerRef as React.RefObject<HTMLDivElement>, selectedLanguage === 'all' ? '' : selectedLanguage, columnPositions);
   
   useEffect(() => {
     updateMeasurements();
