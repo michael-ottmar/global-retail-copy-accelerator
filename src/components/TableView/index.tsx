@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { TableHeader } from './TableHeader';
 import { TableBody } from './TableBody';
@@ -18,12 +18,29 @@ export function TableView() {
   } = useStore();
   
   const containerRef = useRef<HTMLDivElement>(null!);
-  const [currentVariable, setCurrentVariable] = useState<string>('');
+  
+  // Calculate variable column width based on content
+  const calculateVariableColumnWidth = () => {
+    if (!project) return 200;
+    let maxLength = 0;
+    
+    project.deliverables.forEach(deliverable => {
+      deliverable.assets.forEach(asset => {
+        asset.fields.forEach(field => {
+          const varName = `${deliverable.name.toLowerCase()}/${asset.name.toLowerCase()}/${(field.customName || field.name).toLowerCase()}`.replace(/\s+/g, '_');
+          maxLength = Math.max(maxLength, varName.length);
+        });
+      });
+    });
+    
+    // 8px per character + 32px padding (16px each side)
+    return Math.min(Math.max(maxLength * 8 + 32, 150), 400);
+  };
   
   // Define column configuration
   const columns: ColumnConfig[] = [
     { id: 'hierarchy', width: 350, sticky: true, label: 'Deliverable / Asset / Field' },
-    ...(showVariableColumn ? [{ id: 'variable', width: 200, sticky: true, label: 'Variable' }] : []),
+    ...(showVariableColumn ? [{ id: 'variable', width: calculateVariableColumnWidth(), sticky: true, label: 'Variable' }] : []),
     { id: 'en', width: 300, sticky: true, label: 'English (Source)', isSource: true },
     ...(selectedLanguage !== 'en' ? [{
       id: selectedLanguage,
@@ -56,16 +73,6 @@ export function TableView() {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-gray-50">
-      {/* Variable Display Bar */}
-      {currentVariable && (
-        <div className="bg-white border-b border-gray-200 px-4 py-2 shadow-sm">
-          <span className="text-sm text-gray-500">Variable:</span>
-          <code className="ml-2 text-sm font-mono text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
-            {currentVariable}
-          </code>
-        </div>
-      )}
-      
       {/* Table Container */}
       <div 
         ref={containerRef}
@@ -90,7 +97,7 @@ export function TableView() {
             }
             languages={project.languages}
             searchQuery={searchQuery}
-            onVariableHover={setCurrentVariable}
+            onVariableHover={() => {}}
           />
         </table>
       </div>

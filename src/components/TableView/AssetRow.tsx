@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2Icon, PlusIcon, GripVerticalIcon, EditIcon, CopyIcon } from 'lucide-react';
+import { Trash2Icon, PlusIcon, GripVerticalIcon, CopyIcon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Asset, Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -112,17 +112,15 @@ export function AssetRow({
                   autoFocus
                 />
               ) : (
-                <span className="text-sm font-bold text-gray-700">{asset.name}</span>
+                <span 
+                  className="text-sm font-bold text-gray-700 cursor-text hover:bg-gray-100 px-1 py-0.5 rounded"
+                  onClick={() => setEditingAssetName(true)}
+                >
+                  {asset.name}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => setEditingAssetName(true)}
-                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
-                title="Edit asset name"
-              >
-                <EditIcon className="w-3 h-3" />
-              </button>
               <button
                 onClick={() => duplicateAsset?.(deliverable.id, asset.id)}
                 className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all duration-200 p-1"
