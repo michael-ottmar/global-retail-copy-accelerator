@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, ToggleLeftIcon, ToggleRightIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from 'lucide-react';
 import { useStore } from '../../store';
 import type { Deliverable, Language } from '../../types';
 import type { ColumnConfig, ColumnPosition } from './types';
@@ -73,17 +73,15 @@ export function DeliverableRow({
                     {deliverable.name.toUpperCase()}
                   </button>
                   {sectionKey && (
-                    <button
-                      onClick={() => toggleSection(sectionKey)}
-                      className="ml-4 p-1 hover:bg-gray-200 rounded transition-colors"
-                      title={isEnabled ? 'Disable section' : 'Enable section'}
-                    >
-                      {isEnabled ? (
-                        <ToggleRightIcon className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <ToggleLeftIcon className="w-5 h-5 text-gray-400" />
-                      )}
-                    </button>
+                    <label className="relative inline-flex items-center cursor-pointer ml-4">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={isEnabled}
+                        onChange={() => toggleSection(sectionKey)}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
                   )}
                 </div>
               </StickyCell>

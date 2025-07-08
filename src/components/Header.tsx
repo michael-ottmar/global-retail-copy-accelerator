@@ -90,15 +90,15 @@ export function Header() {
                 <span className="ml-1.5">Table</span>
               </button>
               <button
-                onClick={() => setCurrentView('preview')}
+                onClick={() => setCurrentView('mockup')}
                 className={`flex items-center px-3 py-1.5 text-sm font-medium transition-colors ${
-                  currentView === 'preview'
+                  currentView === 'mockup'
                     ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <EyeIcon className="w-4 h-4" />
-                <span className="ml-1.5">Preview</span>
+                <span className="ml-1.5">Mockup</span>
               </button>
             </div>
 
@@ -122,8 +122,8 @@ export function Header() {
         </div>
       </header>
 
-      {/* Secondary Toolbar - Only show in table view */}
-      {currentView === 'table' && (
+      {/* Secondary Toolbar - Show in both views */}
+      {(currentView === 'table' || currentView === 'mockup') && (
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -190,30 +190,36 @@ export function Header() {
                 </button>
               </div>
 
-              {/* Add Language Button */}
-              <button 
-                className="text-sm text-gray-700 bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-lg"
-                onClick={() => useStore.getState().setAddingLanguage(true)}
-              >
-                Add a language column
-              </button>
+              {/* Add Language Button - Only in table view */}
+              {currentView === 'table' && (
+                <button 
+                  className="text-sm text-gray-700 bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-lg"
+                  onClick={() => useStore.getState().setAddingLanguage(true)}
+                >
+                  Add a language column
+                </button>
+              )}
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-600">
-              {/* Variable Toggle */}
-              <div className="flex items-center gap-2">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={showVariableColumn}
-                    onChange={(e) => setShowVariableColumn(e.target.checked)}
-                  />
-                  <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                </label>
-                <span>{totalVariables} variables</span>
-              </div>
-              <span>•</span>
+              {/* Variable Toggle - Only in table view */}
+              {currentView === 'table' && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={showVariableColumn}
+                        onChange={(e) => setShowVariableColumn(e.target.checked)}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                    <span>{totalVariables} variables</span>
+                  </div>
+                  <span>•</span>
+                </>
+              )}
               <span>{project?.languages.length} languages</span>
               <span>•</span>
               

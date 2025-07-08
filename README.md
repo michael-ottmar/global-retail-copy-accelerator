@@ -5,7 +5,7 @@ A purpose-built translation management system for retail marketing copy with sea
 ## Features
 
 - 📊 **Hierarchical Table View** - Organized by deliverables, assets, and fields
-- 👁️ **Preview Mode** - Visual Amazon PDP-style preview
+- 👁️ **Mockup Mode** - Visual Amazon PDP-style mockup
 - 🎨 **Figma Export** - JSON format ready for Figma Variables import
 - 🌐 **Multi-language Support** - Add unlimited languages with 2-letter codes
 - ✏️ **Custom Fields** - Add custom field names to any asset
@@ -41,7 +41,7 @@ src/
 ├── components/
 │   ├── Header.tsx       # Navigation and export controls
 │   ├── TableView.tsx    # Main translation table
-│   └── PreviewView.tsx  # Visual preview mode
+│   └── MockupView.tsx   # Visual mockup mode
 ├── store/
 │   └── index.ts         # Zustand state management
 ├── types/
@@ -59,7 +59,7 @@ src/
 2. **Edit Content**: Click any cell to edit translations inline
 3. **Add Custom Fields**: Click "Add field" under any asset to create custom fields
 4. **Export to Figma**: Click "Export JSON" to download Figma-ready variables
-5. **Preview Mode**: Toggle between table and visual preview views
+5. **Mockup Mode**: Toggle between table and visual mockup views
 
 ## Data Structure
 

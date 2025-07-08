@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useStore } from './store';
 import { Header } from './components/Header';
 import { TableView } from './components/TableView';
-import { PreviewView } from './components/PreviewView';
+import { MockupView } from './components/MockupView';
 import { createSampleProject } from './utils/sampleData';
 
 function App() {
@@ -40,7 +40,7 @@ function App() {
     <div className="h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1 overflow-hidden">
-        {currentView === 'table' ? <TableView /> : <PreviewView />}
+        {currentView === 'table' ? <TableView /> : <MockupView />}
       </main>
     </div>
   );

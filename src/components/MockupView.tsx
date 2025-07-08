@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { PlusIcon, MinusIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 
-export function PreviewView() {
+export function MockupView() {
   const { project, translations, selectedLanguage, addAsset, removeAsset } = useStore();
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
 
@@ -29,8 +29,9 @@ export function PreviewView() {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm">
+    <div className="flex-1 overflow-auto bg-gray-50">
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm">
         {/* Amazon PDP Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Left Column - Gallery */}
@@ -165,6 +166,7 @@ export function PreviewView() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
