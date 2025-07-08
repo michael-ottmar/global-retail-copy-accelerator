@@ -286,14 +286,19 @@ export const useStore = create<Store>((set, get) => ({
     return {
       project: {
         ...state.project,
-        deliverables: state.project.deliverables.map(d => 
-          d.id === deliverableId 
-            ? { 
-                ...d, 
-                assets: [...d.assets, newAsset]
-              }
-            : d
-        )
+        deliverables: state.project.deliverables.map(d => {
+          if (d.id !== deliverableId) return d;
+          
+          // Find the index of the asset to duplicate
+          const assetIndex = d.assets.findIndex(a => a.id === assetId);
+          if (assetIndex === -1) return d;
+          
+          // Insert the new asset right after the original
+          const newAssets = [...d.assets];
+          newAssets.splice(assetIndex + 1, 0, newAsset);
+          
+          return { ...d, assets: newAssets };
+        })
       },
       translations: [...state.translations, ...newTranslations]
     };
