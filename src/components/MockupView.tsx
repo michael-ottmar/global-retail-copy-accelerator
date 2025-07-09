@@ -2,9 +2,20 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { PlusIcon, MinusIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, Trash2Icon } from 'lucide-react';
 import { EditableField } from './MockupView/EditableField';
+import { FieldGroup } from './MockupView/FieldGroup';
 
 export function MockupView() {
-  const { project, selectedLanguage, addAsset, removeAsset, duplicateAsset, updateAssetName } = useStore();
+  const { 
+    project, 
+    selectedLanguage, 
+    addAsset, 
+    removeAsset, 
+    duplicateAsset, 
+    updateAssetName,
+    updateFieldName,
+    addCustomField,
+    removeField 
+  } = useStore();
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [assetName, setAssetName] = useState('');
@@ -105,17 +116,14 @@ export function MockupView() {
                           </span>
                         )}
                       </h3>
-                      {galleryImages[currentGalleryIndex].fields.map((field) => (
-                        <div key={field.id} className="mb-2">
-                          <span className="text-sm text-gray-500 block">{field.name}:</span>
-                          <EditableField
-                            fieldId={field.id}
-                            languageCode={currentLanguage}
-                            className="text-sm"
-                            multiline={field.type === 'body' || field.type === 'legal'}
-                          />
-                        </div>
-                      ))}
+                      <FieldGroup
+                        fields={galleryImages[currentGalleryIndex].fields}
+                        asset={galleryImages[currentGalleryIndex]}
+                        currentLanguage={currentLanguage}
+                        updateFieldName={updateFieldName}
+                        removeField={removeField}
+                        addCustomField={addCustomField}
+                      />
                     </div>
                   </div>
                   
@@ -274,19 +282,15 @@ export function MockupView() {
                     </span>
                   )}
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {module.fields.map((field) => (
-                    <div key={field.id}>
-                      <span className="text-sm text-gray-500 block">{field.name}:</span>
-                      <EditableField
-                        fieldId={field.id}
-                        languageCode={selectedLanguage}
-                        className="text-sm"
-                        multiline={field.type === 'body' || field.type === 'legal'}
-                      />
-                    </div>
-                  ))}
-                </div>
+                <FieldGroup
+                  fields={module.fields}
+                  asset={module}
+                  currentLanguage={currentLanguage}
+                  updateFieldName={updateFieldName}
+                  removeField={removeField}
+                  addCustomField={addCustomField}
+                  className="grid grid-cols-2 gap-4"
+                />
               </div>
             ))}
           </div>
@@ -366,19 +370,15 @@ export function MockupView() {
                         </span>
                       )}
                     </h3>
-                    <div className="space-y-2">
-                      {banner.fields.map((field) => (
-                        <div key={field.id}>
-                          <span className="text-xs text-gray-500 block">{field.name}:</span>
-                          <EditableField
-                            fieldId={field.id}
-                            languageCode={currentLanguage}
-                            className="text-sm text-gray-700"
-                            multiline={field.type === 'body' || field.type === 'legal'}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                    <FieldGroup
+                      fields={banner.fields}
+                      asset={banner}
+                      currentLanguage={currentLanguage}
+                      updateFieldName={updateFieldName}
+                      removeField={removeField}
+                      addCustomField={addCustomField}
+                      className="space-y-2"
+                    />
                   </div>
                 ))}
               </div>
@@ -454,19 +454,15 @@ export function MockupView() {
                         </span>
                       )}
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {module.fields.map((field) => (
-                        <div key={field.id}>
-                          <span className="text-xs text-gray-500 block">{field.name}:</span>
-                          <EditableField
-                            fieldId={field.id}
-                            languageCode={currentLanguage}
-                            className="text-sm text-gray-700"
-                            multiline={field.type === 'body' || field.type === 'legal'}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                    <FieldGroup
+                      fields={module.fields}
+                      asset={module}
+                      currentLanguage={currentLanguage}
+                      updateFieldName={updateFieldName}
+                      removeField={removeField}
+                      addCustomField={addCustomField}
+                      className="grid grid-cols-2 gap-4"
+                    />
                   </div>
                 ))}
               </div>
