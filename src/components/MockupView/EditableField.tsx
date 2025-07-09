@@ -13,7 +13,7 @@ export function EditableField({
   fieldId, 
   languageCode, 
   className = '',
-  placeholder = '[Empty]',
+  placeholder = 'Click to edit...',
   multiline = false
 }: EditableFieldProps) {
   const { translations, updateTranslation } = useStore();

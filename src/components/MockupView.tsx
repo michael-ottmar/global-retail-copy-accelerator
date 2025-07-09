@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import { PlusIcon, MinusIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { PlusIcon, MinusIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, Trash2Icon } from 'lucide-react';
 import { EditableField } from './MockupView/EditableField';
 
 export function MockupView() {
-  const { project, selectedLanguage, addAsset, removeAsset } = useStore();
+  const { project, selectedLanguage, addAsset, removeAsset, duplicateAsset, updateAssetName } = useStore();
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
+  const [assetName, setAssetName] = useState('');
 
   if (!project) return null;
   
@@ -41,13 +43,67 @@ export function MockupView() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Left Column - Gallery */}
           <div>
-            <div className="relative bg-gray-100 rounded-lg p-8 mb-4">
+            <div className="relative bg-gray-100 rounded-lg p-8 mb-4 group">
               {galleryImages.length > 0 && (
                 <>
+                  {/* Hover Actions for Gallery */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
+                    <button
+                      onClick={() => pdp && duplicateAsset(pdp.id, galleryImages[currentGalleryIndex].id)}
+                      className="p-1.5 bg-white text-gray-600 hover:text-gray-800 rounded shadow-sm hover:shadow"
+                      title="Duplicate gallery image"
+                    >
+                      <CopyIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        removeAsset(galleryImages[currentGalleryIndex].id);
+                        if (currentGalleryIndex > 0) {
+                          setCurrentGalleryIndex(currentGalleryIndex - 1);
+                        }
+                      }}
+                      className="p-1.5 bg-white text-red-500 hover:text-red-700 rounded shadow-sm hover:shadow"
+                      title="Delete gallery image"
+                    >
+                      <Trash2Icon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
                   <div className="aspect-square bg-white rounded flex items-center justify-center">
                     <div className="text-center p-8">
                       <h3 className="text-lg font-semibold mb-2">
-                        {galleryImages[currentGalleryIndex].name}
+                        {editingAssetId === galleryImages[currentGalleryIndex].id ? (
+                          <input
+                            type="text"
+                            value={assetName}
+                            onChange={(e) => setAssetName(e.target.value)}
+                            onBlur={() => {
+                              updateAssetName(galleryImages[currentGalleryIndex].id, assetName);
+                              setEditingAssetId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateAssetName(galleryImages[currentGalleryIndex].id, assetName);
+                                setEditingAssetId(null);
+                              } else if (e.key === 'Escape') {
+                                setAssetName(galleryImages[currentGalleryIndex].name);
+                                setEditingAssetId(null);
+                              }
+                            }}
+                            className="px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            autoFocus
+                          />
+                        ) : (
+                          <span 
+                            className="cursor-text hover:bg-gray-200 px-2 py-1 rounded inline-block"
+                            onClick={() => {
+                              setAssetName(galleryImages[currentGalleryIndex].name);
+                              setEditingAssetId(galleryImages[currentGalleryIndex].id);
+                            }}
+                          >
+                            {galleryImages[currentGalleryIndex].name}
+                          </span>
+                        )}
                       </h3>
                       {galleryImages[currentGalleryIndex].fields.map((field) => (
                         <div key={field.id} className="mb-2">
@@ -122,7 +178,7 @@ export function MockupView() {
                   <EditableField
                     fieldId={productDetails.fields.find(f => f.type === 'productName')?.id || ''}
                     languageCode={currentLanguage}
-                    placeholder="[Product Name]"
+                    placeholder="Product Name"
                     className="text-2xl font-bold"
                   />
                 </h1>
@@ -131,7 +187,7 @@ export function MockupView() {
                   <EditableField
                     fieldId={productDetails.fields.find(f => f.type === 'productDetails')?.id || ''}
                     languageCode={currentLanguage}
-                    placeholder="[Product Details]"
+                    placeholder="Product Details"
                     className="text-gray-700"
                     multiline={true}
                   />
@@ -147,7 +203,7 @@ export function MockupView() {
                           <EditableField
                             fieldId={field.id}
                             languageCode={currentLanguage}
-                            placeholder="[Bullet Point]"
+                            placeholder="Bullet Point"
                             className="text-gray-700"
                           />
                         </li>
@@ -164,8 +220,60 @@ export function MockupView() {
           <h2 className="text-xl font-semibold mb-6">Content Modules</h2>
           <div className="space-y-6">
             {modules.map((module) => (
-              <div key={module.id} className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-4">{module.name}</h3>
+              <div key={module.id} className="bg-gray-50 rounded-lg p-6 relative group">
+                {/* Hover Actions */}
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                  <button
+                    onClick={() => pdp && duplicateAsset(pdp.id, module.id)}
+                    className="p-1.5 bg-white text-gray-600 hover:text-gray-800 rounded shadow-sm hover:shadow"
+                    title="Duplicate module"
+                  >
+                    <CopyIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => removeAsset(module.id)}
+                    className="p-1.5 bg-white text-red-500 hover:text-red-700 rounded shadow-sm hover:shadow"
+                    title="Delete module"
+                  >
+                    <Trash2Icon className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                {/* Module Name - Editable */}
+                <h3 className="font-semibold mb-4">
+                  {editingAssetId === module.id ? (
+                    <input
+                      type="text"
+                      value={assetName}
+                      onChange={(e) => setAssetName(e.target.value)}
+                      onBlur={() => {
+                        updateAssetName(module.id, assetName);
+                        setEditingAssetId(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          updateAssetName(module.id, assetName);
+                          setEditingAssetId(null);
+                        } else if (e.key === 'Escape') {
+                          setAssetName(module.name);
+                          setEditingAssetId(null);
+                        }
+                      }}
+                      className="px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      autoFocus
+                    />
+                  ) : (
+                    <span 
+                      className="cursor-text hover:bg-gray-200 px-2 py-1 rounded inline-block"
+                      onClick={() => {
+                        setAssetName(module.name);
+                        setEditingAssetId(module.id);
+                      }}
+                    >
+                      {module.name}
+                    </span>
+                  )}
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {module.fields.map((field) => (
                     <div key={field.id}>
@@ -204,8 +312,60 @@ export function MockupView() {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {banners.assets.map((banner) => (
-                  <div key={banner.id} className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">{banner.name}</h3>
+                  <div key={banner.id} className="border border-gray-200 rounded-lg p-4 relative group">
+                    {/* Hover Actions */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      <button
+                        onClick={() => duplicateAsset(banners.id, banner.id)}
+                        className="p-1 bg-white text-gray-600 hover:text-gray-800 rounded shadow-sm hover:shadow"
+                        title="Duplicate banner"
+                      >
+                        <CopyIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => removeAsset(banner.id)}
+                        className="p-1 bg-white text-red-500 hover:text-red-700 rounded shadow-sm hover:shadow"
+                        title="Delete banner"
+                      >
+                        <Trash2Icon className="w-3 h-3" />
+                      </button>
+                    </div>
+                    
+                    {/* Banner Name - Editable */}
+                    <h3 className="font-semibold mb-3">
+                      {editingAssetId === banner.id ? (
+                        <input
+                          type="text"
+                          value={assetName}
+                          onChange={(e) => setAssetName(e.target.value)}
+                          onBlur={() => {
+                            updateAssetName(banner.id, assetName);
+                            setEditingAssetId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateAssetName(banner.id, assetName);
+                              setEditingAssetId(null);
+                            } else if (e.key === 'Escape') {
+                              setAssetName(banner.name);
+                              setEditingAssetId(null);
+                            }
+                          }}
+                          className="px-1 py-0.5 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          autoFocus
+                        />
+                      ) : (
+                        <span 
+                          className="cursor-text hover:bg-gray-200 px-1 py-0.5 rounded inline-block"
+                          onClick={() => {
+                            setAssetName(banner.name);
+                            setEditingAssetId(banner.id);
+                          }}
+                        >
+                          {banner.name}
+                        </span>
+                      )}
+                    </h3>
                     <div className="space-y-2">
                       {banner.fields.map((field) => (
                         <div key={field.id}>
@@ -240,8 +400,60 @@ export function MockupView() {
             <div className="p-6">
               <div className="space-y-4">
                 {crm.assets.map((module) => (
-                  <div key={module.id} className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">{module.name}</h3>
+                  <div key={module.id} className="border border-gray-200 rounded-lg p-4 relative group">
+                    {/* Hover Actions */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      <button
+                        onClick={() => duplicateAsset(crm.id, module.id)}
+                        className="p-1 bg-white text-gray-600 hover:text-gray-800 rounded shadow-sm hover:shadow"
+                        title="Duplicate module"
+                      >
+                        <CopyIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => removeAsset(module.id)}
+                        className="p-1 bg-white text-red-500 hover:text-red-700 rounded shadow-sm hover:shadow"
+                        title="Delete module"
+                      >
+                        <Trash2Icon className="w-3 h-3" />
+                      </button>
+                    </div>
+                    
+                    {/* Module Name - Editable */}
+                    <h3 className="font-semibold mb-3">
+                      {editingAssetId === module.id ? (
+                        <input
+                          type="text"
+                          value={assetName}
+                          onChange={(e) => setAssetName(e.target.value)}
+                          onBlur={() => {
+                            updateAssetName(module.id, assetName);
+                            setEditingAssetId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateAssetName(module.id, assetName);
+                              setEditingAssetId(null);
+                            } else if (e.key === 'Escape') {
+                              setAssetName(module.name);
+                              setEditingAssetId(null);
+                            }
+                          }}
+                          className="px-1 py-0.5 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          autoFocus
+                        />
+                      ) : (
+                        <span 
+                          className="cursor-text hover:bg-gray-200 px-1 py-0.5 rounded inline-block"
+                          onClick={() => {
+                            setAssetName(module.name);
+                            setEditingAssetId(module.id);
+                          }}
+                        >
+                          {module.name}
+                        </span>
+                      )}
+                    </h3>
                     <div className="grid grid-cols-2 gap-4">
                       {module.fields.map((field) => (
                         <div key={field.id}>
