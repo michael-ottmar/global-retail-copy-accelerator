@@ -13,6 +13,25 @@ interface FieldGroupProps {
   className?: string;
 }
 
+// Get typography classes based on field type
+const getFieldTypeClasses = (fieldType: string) => {
+  switch (fieldType) {
+    case 'headline':
+    case 'productName':
+      return 'text-xl font-bold text-gray-900';
+    case 'body':
+    case 'productDetails':
+      return 'text-base text-gray-700';
+    case 'legal':
+      return 'text-xs text-gray-500';
+    case 'feature':
+    case 'bullet':
+      return 'text-base text-gray-700';
+    default:
+      return 'text-base text-gray-700';
+  }
+};
+
 export function FieldGroup({
   fields,
   asset,
@@ -31,18 +50,8 @@ export function FieldGroup({
     <div className={className}>
       {fields.map((field) => (
         <div key={field.id} className="group/field relative">
-          {/* Field hover actions */}
-          <div className="absolute -right-8 top-0 opacity-0 group-hover/field:opacity-100 transition-opacity">
-            <button
-              onClick={() => removeField(asset.id, field.id)}
-              className="p-1 text-red-500 hover:text-red-700"
-              title="Delete field"
-            >
-              <Trash2Icon className="w-3 h-3" />
-            </button>
-          </div>
-          
-          <span className="text-xs text-gray-500 block">
+          {/* Field label */}
+          <span className="text-xs text-gray-500 block mb-1">
             {editingFieldId === field.id ? (
               <input
                 type="text"
@@ -61,27 +70,40 @@ export function FieldGroup({
                     setEditingFieldId(null);
                   }
                 }}
-                className="px-1 py-0.5 border border-purple-500 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+                className="px-1 py-0.5 border border-purple-500 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs uppercase"
                 autoFocus
               />
             ) : (
               <span 
-                className="cursor-text hover:bg-gray-200 px-1 py-0.5 rounded inline-block"
+                className="cursor-text hover:bg-gray-200 px-1 py-0.5 rounded inline-flex items-center gap-2"
                 onClick={() => {
                   setFieldName(field.customName || field.name);
                   setEditingFieldId(field.id);
                 }}
               >
-                {field.customName || field.name}:
+                <span className="uppercase">{field.customName || field.name}</span>
+                {/* Delete button inline with label */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeField(asset.id, field.id);
+                  }}
+                  className="opacity-0 group-hover/field:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
+                  title="Delete field"
+                >
+                  <Trash2Icon className="w-3 h-3" />
+                </button>
               </span>
             )}
           </span>
-          <EditableField
-            fieldId={field.id}
-            languageCode={currentLanguage}
-            className="text-sm text-gray-700"
-            multiline={field.type === 'body' || field.type === 'legal'}
-          />
+          <div className="break-words overflow-hidden">
+            <EditableField
+              fieldId={field.id}
+              languageCode={currentLanguage}
+              className={getFieldTypeClasses(field.type)}
+              multiline={field.type === 'body' || field.type === 'legal' || field.type === 'productDetails'}
+            />
+          </div>
         </div>
       ))}
       

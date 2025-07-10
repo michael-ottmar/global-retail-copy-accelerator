@@ -62,7 +62,7 @@ export function EditableField({
         onChange={(e) => setLocalValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleSave}
-        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none ${className}`}
+        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none w-full ${className}`}
         rows={3}
       />
     ) : (
@@ -73,7 +73,7 @@ export function EditableField({
         onChange={(e) => setLocalValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleSave}
-        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 ${className}`}
+        className={`px-2 py-1 border border-purple-500 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 w-full ${className}`}
       />
     );
   }
@@ -85,7 +85,7 @@ export function EditableField({
   return (
     <span
       onClick={handleEdit}
-      className={`cursor-text hover:bg-gray-100 px-2 py-1 rounded transition-colors inline-block ${
+      className={`cursor-text hover:bg-gray-100 px-2 py-1 rounded transition-colors inline-block min-w-0 break-words ${
         value ? className : `${className} ${statusClasses} italic`
       }`}
       title="Click to edit"
