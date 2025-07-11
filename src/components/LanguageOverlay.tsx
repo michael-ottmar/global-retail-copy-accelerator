@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XIcon, PlusIcon } from 'lucide-react';
+import { XIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { useStore } from '../store';
 import { standardLanguages, type LanguageOption } from '../utils/languageCodes';
 
@@ -14,6 +14,7 @@ export function LanguageOverlay({ isOpen, onClose }: LanguageOverlayProps) {
   const [customMarketCode, setCustomMarketCode] = useState('');
   const [customLanguageName, setCustomLanguageName] = useState('');
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Initialize selected languages from project
   useEffect(() => {
@@ -82,17 +83,37 @@ export function LanguageOverlay({ isOpen, onClose }: LanguageOverlayProps) {
     onClose();
   };
 
-  // Group languages by region
-  const languagesByRegion = standardLanguages.reduce((acc, lang) => {
-    const region = lang.region.includes('United') ? 'Americas' :
-                   ['China', 'Japan', 'Korea', 'India', 'Thailand', 'Vietnam', 'Indonesia', 'Malaysia', 'Philippines', 'Australia', 'New Zealand', 'Singapore', 'Taiwan', 'Hong Kong'].some(country => lang.region.includes(country)) ? 'Asia-Pacific' :
-                   ['Saudi', 'Arab', 'Egypt', 'Morocco', 'Israel', 'Iran', 'Pakistan', 'South Africa', 'Kenya', 'Ethiopia'].some(country => lang.region.includes(country)) ? 'Middle East & Africa' :
-                   'Europe';
-    
-    if (!acc[region]) acc[region] = [];
-    acc[region].push(lang);
-    return acc;
-  }, {} as Record<string, LanguageOption[]>);
+  // Define common markets
+  const commonMarketCodes = [
+    'en-US', 'en-CA', 'fr-CA', 'es-MX', 'en-GB', 'en-AU', 
+    'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'ja-JP', 'ko-KR'
+  ];
+  
+  const commonMarkets = standardLanguages.filter(lang => 
+    commonMarketCodes.includes(lang.code)
+  ).sort((a, b) => 
+    commonMarketCodes.indexOf(a.code) - commonMarketCodes.indexOf(b.code)
+  );
+  
+  const restOfWorld = standardLanguages.filter(lang => 
+    !commonMarketCodes.includes(lang.code)
+  ).sort((a, b) => 
+    a.code.localeCompare(b.code)
+  );
+  
+  // Filter languages based on search query
+  const filterLanguages = (languages: LanguageOption[]) => {
+    if (!searchQuery) return languages;
+    const query = searchQuery.toLowerCase();
+    return languages.filter(lang => 
+      lang.code.toLowerCase().includes(query) ||
+      lang.name.toLowerCase().includes(query) ||
+      lang.region.toLowerCase().includes(query)
+    );
+  };
+  
+  const filteredCommonMarkets = filterLanguages(commonMarkets);
+  const filteredRestOfWorld = filterLanguages(restOfWorld);
 
   return (
     <>
@@ -118,17 +139,41 @@ export function LanguageOverlay({ isOpen, onClose }: LanguageOverlayProps) {
           
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Select the languages you want to include in your project. English (en-US) is required and cannot be removed.
             </p>
+            
+            {/* Search and Custom Button */}
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1 relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search languages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const customSection = document.getElementById('custom-language-section');
+                  customSection?.scrollIntoView({ behavior: 'smooth' });
+                  setShowCustomForm(true);
+                }}
+                className="px-4 py-2 border border-purple-500 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors flex items-center"
+              >
+                <PlusIcon className="w-4 h-4 mr-1.5" />
+                Create custom
+              </button>
+            </div>
 
-            {/* Language List by Region */}
-            <div className="space-y-8">
-              {Object.entries(languagesByRegion).map(([region, languages]) => (
-                <div key={region}>
-                  <h3 className="text-lg font-medium mb-3">{region}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {languages.map(lang => (
+            {/* Common Markets */}
+            {filteredCommonMarkets.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-medium mb-3">Common Markets</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {filteredCommonMarkets.map(lang => (
                       <label
                         key={lang.code}
                         className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -160,14 +205,55 @@ export function LanguageOverlay({ isOpen, onClose }: LanguageOverlayProps) {
                           {lang.region && <span className="text-gray-500"> ({lang.region})</span>}
                         </span>
                       </label>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+            
+            {/* Rest of World */}
+            {filteredRestOfWorld.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-medium mb-3">Rest of World</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {filteredRestOfWorld.map(lang => (
+                    <label
+                      key={lang.code}
+                      className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedLanguages.has(lang.code)
+                          ? 'border-purple-500 bg-purple-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      } ${lang.code === 'en-US' ? 'opacity-75 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedLanguages.has(lang.code)}
+                        onChange={() => handleToggleLanguage(lang)}
+                        disabled={lang.code === 'en-US'}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                        selectedLanguages.has(lang.code)
+                          ? 'border-purple-500 bg-purple-500'
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedLanguages.has(lang.code) && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 12 10">
+                            <path d="M10.28.28L3.989 6.575 1.695 4.28A1 1 0 00.28 5.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28.28z" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-sm">
+                        {lang.code} - {lang.flag} {lang.name}
+                        {lang.region && <span className="text-gray-500"> ({lang.region})</span>}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Custom Language Section */}
-            <div className="mt-8 pt-8 border-t">
+            <div id="custom-language-section" className="mt-8 pt-8 border-t">
               <h3 className="text-lg font-medium mb-3">Custom Language</h3>
               
               {!showCustomForm ? (
