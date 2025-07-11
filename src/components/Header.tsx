@@ -13,7 +13,10 @@ import {
   RedoIcon,
   FileTextIcon,
   ChevronDownIcon,
-  PlusIcon
+  PlusIcon,
+  LanguagesIcon,
+  PackageIcon,
+  ToggleLeftIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { exportToWord } from '../utils/exportWord';
@@ -21,6 +24,7 @@ import { exportToHtml } from '../utils/exportHtml';
 import { useState, useEffect } from 'react';
 import { SettingsOverlay } from './SettingsOverlay';
 import { LanguageOverlay } from './LanguageOverlay';
+import { SkuVariantsOverlay } from './SkuVariantsOverlay';
 
 export function Header() {
   const { 
@@ -48,6 +52,7 @@ export function Header() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
+  const [showSkuVariants, setShowSkuVariants] = useState(false);
 
   useEffect(() => {
     if (lastSaved) {
@@ -268,47 +273,57 @@ export function Header() {
 
             </div>
 
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              {/* Variable Toggle - Only in table view */}
-              {currentView === 'table' && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={showVariableColumn}
-                        onChange={(e) => setShowVariableColumn(e.target.checked)}
-                      />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                    </label>
-                    <span>{totalVariables} variables</span>
-                  </div>
-                  <span>•</span>
-                </>
-              )}
-              {/* Language Management Button - Available in all views */}
+            <div className="flex items-center space-x-3 text-sm text-gray-600">
+              {/* SKU Variants Button */}
+              <button
+                onClick={() => setShowSkuVariants(true)}
+                className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
+              >
+                <PackageIcon className="w-4 h-4 mr-1.5" />
+                <span>0 SKU Variants</span>
+              </button>
+              <span className="text-gray-400">•</span>
+              
+              {/* Language Management Button */}
               <button
                 onClick={() => setShowLanguages(true)}
-                className="flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
               >
                 <div className="w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center mr-1.5 hover:border-gray-600">
                   <PlusIcon className="w-3 h-3" />
                 </div>
                 <span>{project?.languages.length} languages</span>
               </button>
-              <span>•</span>
+              <span className="text-gray-400">•</span>
               
-              {/* Auto-save indicator */}
-              {showAutoSaved ? (
-                <span className="text-green-600 flex items-center">
-                  <CheckIcon className="w-3 h-3 mr-1" />
-                  Auto-saved
-                </span>
-              ) : (
-                <span className="text-gray-500">
-                  {completedTranslations}/{totalTranslations} translations
-                </span>
+              {/* Translations Button */}
+              <button
+                onClick={() => {/* TODO: Show translations overlay */}}
+                className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
+              >
+                <LanguagesIcon className="w-4 h-4 mr-1.5" />
+                {showAutoSaved ? (
+                  <span className="text-green-600 flex items-center">
+                    <CheckIcon className="w-3 h-3 mr-1" />
+                    Auto-saved
+                  </span>
+                ) : (
+                  <span>{completedTranslations}/{totalTranslations} translations</span>
+                )}
+              </button>
+              
+              {/* Variable Toggle - Only in table view */}
+              {currentView === 'table' && (
+                <>
+                  <span className="text-gray-400">•</span>
+                  <button
+                    onClick={() => setShowVariableColumn(!showVariableColumn)}
+                    className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
+                  >
+                    <ToggleLeftIcon className={`w-4 h-4 mr-1.5 ${showVariableColumn ? 'text-purple-600' : ''}`} />
+                    <span>{totalVariables} variables</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -325,6 +340,12 @@ export function Header() {
       <LanguageOverlay
         isOpen={showLanguages}
         onClose={() => setShowLanguages(false)}
+      />
+      
+      {/* SKU Variants Overlay */}
+      <SkuVariantsOverlay
+        isOpen={showSkuVariants}
+        onClose={() => setShowSkuVariants(false)}
       />
     </>
   );
