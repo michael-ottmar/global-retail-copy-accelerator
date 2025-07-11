@@ -31,7 +31,9 @@ interface Store {
   // Actions
   setProject: (project: Project) => void;
   setTranslations: (translations: Translation[]) => void;
-  updateTranslation: (fieldId: string, languageCode: string, value: string) => void;
+  updateTranslation: (fieldId: string, languageCode: string, value: string, variantId?: string) => void;
+  getTranslation: (fieldId: string, languageCode: string, variantId?: string) => Translation | undefined;
+  getEffectiveTranslation: (fieldId: string, languageCode: string, variantId: string) => Translation | undefined;
   setCurrentView: (view: 'table' | 'mockup' | 'word') => void;
   setSelectedLanguage: (language: string) => void;
   setSelectedDeliverable: (deliverableId: string | null) => void;
@@ -98,12 +100,38 @@ export const useStore = create<Store>((set, get) => ({
   setProject: (project) => set({ project }),
   setTranslations: (translations) => set({ translations }),
   
-  updateTranslation: (fieldId, languageCode, value) => set((state) => {
-    const newTranslations = state.translations.map(t => 
-      t.fieldId === fieldId && t.languageCode === languageCode
-        ? { ...t, value, status: value ? ('in_progress' as const) : ('empty' as const), lastModified: new Date() }
-        : t
+  updateTranslation: (fieldId, languageCode, value, variantId) => set((state) => {
+    const currentVariantId = variantId || state.selectedVariant || state.project?.skuVariants?.find(v => v.isBase)?.id || '1';
+    
+    // Check if translation exists for this variant
+    const existingIndex = state.translations.findIndex(t => 
+      t.fieldId === fieldId && 
+      t.languageCode === languageCode && 
+      (t.variantId === currentVariantId || (!t.variantId && currentVariantId === '1'))
     );
+    
+    let newTranslations;
+    if (existingIndex >= 0) {
+      // Update existing translation
+      newTranslations = [...state.translations];
+      newTranslations[existingIndex] = {
+        ...newTranslations[existingIndex],
+        value,
+        status: value ? ('in_progress' as const) : ('empty' as const),
+        lastModified: new Date(),
+        inheritedFrom: undefined // Clear inheritance when directly edited
+      };
+    } else {
+      // Create new translation for this variant
+      newTranslations = [...state.translations, {
+        fieldId,
+        languageCode,
+        variantId: currentVariantId,
+        value,
+        status: value ? ('in_progress' as const) : ('empty' as const),
+        lastModified: new Date()
+      }];
+    }
     
     // Add to history for undo/redo
     const newHistory = state.history.slice(0, state.historyIndex + 1);
@@ -116,6 +144,40 @@ export const useStore = create<Store>((set, get) => ({
       lastSaved: new Date()
     };
   }),
+  
+  getTranslation: (fieldId, languageCode, variantId) => {
+    const state = get();
+    const currentVariantId = variantId || state.selectedVariant || state.project?.skuVariants?.find(v => v.isBase)?.id || '1';
+    return state.translations.find(t => 
+      t.fieldId === fieldId && 
+      t.languageCode === languageCode && 
+      (t.variantId === currentVariantId || (!t.variantId && currentVariantId === '1'))
+    );
+  },
+  
+  getEffectiveTranslation: (fieldId, languageCode, variantId) => {
+    const state = get();
+    const variants = state.project?.skuVariants || [];
+    const baseVariant = variants.find(v => v.isBase);
+    
+    // First try to get translation for requested variant
+    let translation = state.getTranslation(fieldId, languageCode, variantId);
+    
+    // If not found and this isn't the base variant, try to get from base
+    if (!translation?.value && variantId !== baseVariant?.id && baseVariant) {
+      const baseTranslation = state.getTranslation(fieldId, languageCode, baseVariant.id);
+      if (baseTranslation?.value) {
+        // Return inherited translation
+        return {
+          ...baseTranslation,
+          status: 'inherited' as const,
+          inheritedFrom: baseVariant.id
+        } as Translation;
+      }
+    }
+    
+    return translation;
+  },
   
   setCurrentView: (view) => set({ currentView: view }),
   setSelectedLanguage: (language) => set({ selectedLanguage: language }),

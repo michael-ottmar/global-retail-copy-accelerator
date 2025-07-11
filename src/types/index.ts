@@ -10,8 +10,10 @@ export interface Field {
 export interface Translation {
   fieldId: string;
   languageCode: string;
+  variantId?: string; // Optional for backward compatibility
   value: string;
-  status: 'empty' | 'in_progress' | 'completed' | 'ai_generated';
+  status: 'empty' | 'in_progress' | 'completed' | 'ai_generated' | 'inherited';
+  inheritedFrom?: string; // variantId this value is inherited from
   lastModified?: Date;
 }
 

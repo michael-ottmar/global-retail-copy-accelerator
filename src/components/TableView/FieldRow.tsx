@@ -32,16 +32,13 @@ export function FieldRow({
   dragAndDrop,
   opacity = 1
 }: FieldRowProps) {
-  const { translations, updateTranslation, showVariableColumn, removeField, updateFieldName } = useStore();
+  const { getEffectiveTranslation, updateTranslation, showVariableColumn, removeField, updateFieldName, selectedVariant, project } = useStore();
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editingFieldName, setEditingFieldName] = useState(false);
   const [fieldName, setFieldName] = useState(field.customName || field.name);
   
   const variableName = formatVariableName(deliverable, asset, field);
-  
-  const getTranslation = (languageCode: string) => {
-    return translations.find(t => t.fieldId === field.id && t.languageCode === languageCode);
-  };
+  const currentVariantId = selectedVariant || project?.skuVariants?.find(v => v.isBase)?.id || '1';
   
   const handleCellClick = (languageCode: string) => {
     setEditingCell(`${field.id}-${languageCode}`);
@@ -49,7 +46,7 @@ export function FieldRow({
   };
   
   const handleCellBlur = (languageCode: string, value: string) => {
-    updateTranslation(field.id, languageCode, value);
+    updateTranslation(field.id, languageCode, value, currentVariantId);
     setEditingCell(null);
   };
 
@@ -158,9 +155,10 @@ export function FieldRow({
         // Language columns
         const language = languages.find(l => l.code === column.id);
         if (language) {
-          const translation = getTranslation(language.code);
+          const translation = getEffectiveTranslation(field.id, language.code, currentVariantId);
           const cellKey = `${field.id}-${language.code}`;
           const isEditing = editingCell === cellKey;
+          const isInherited = translation?.status === 'inherited';
           
           return (
             <EditableCell
@@ -171,7 +169,7 @@ export function FieldRow({
               isEditing={isEditing}
               isSource={column.isSource}
               isSelected={column.isSelected}
-              bgColor={bgColor}
+              bgColor={isInherited ? 'bg-gray-50 italic' : bgColor}
               onClick={() => handleCellClick(language.code)}
               onBlur={(value) => handleCellBlur(language.code, value)}
             />

@@ -83,8 +83,24 @@ export function Header() {
     downloadJSON(jsonContent, `${project.name.replace(/\s+/g, '-')}_${timestamp}.json`);
   };
 
-  const completedTranslations = translations.filter(t => t.value && t.languageCode !== 'en').length;
-  const totalTranslations = translations.filter(t => t.languageCode !== 'en').length;
+  // Get current variant ID
+  const currentVariantId = selectedVariant || project?.skuVariants?.find(v => v.isBase)?.id || '1';
+  
+  // Filter translations for current variant
+  const variantTranslations = translations.filter(t => 
+    (t.variantId === currentVariantId || (!t.variantId && currentVariantId === '1'))
+  );
+  
+  const completedTranslations = variantTranslations.filter(t => 
+    t.value && t.languageCode !== 'en' && t.status !== 'inherited'
+  ).length;
+  
+  const totalTranslations = project?.deliverables.reduce((acc, d) => 
+    acc + d.assets.reduce((assetAcc, a) => 
+      assetAcc + a.fields.length * (project.languages.length - 1), 0
+    ), 0
+  ) || 0;
+  
   const totalVariables = project?.deliverables.reduce((acc, d) => 
     acc + d.assets.reduce((assetAcc, a) => assetAcc + a.fields.length, 0), 0
   ) || 0;

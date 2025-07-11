@@ -16,14 +16,13 @@ export function EditableField({
   placeholder = 'Click to edit...',
   multiline = false
 }: EditableFieldProps) {
-  const { translations, updateTranslation } = useStore();
+  const { updateTranslation, getEffectiveTranslation, selectedVariant, project } = useStore();
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState('');
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   
-  const translation = translations.find(
-    t => t.fieldId === fieldId && t.languageCode === languageCode
-  );
+  const currentVariantId = selectedVariant || project?.skuVariants?.find(v => v.isBase)?.id || '1';
+  const translation = getEffectiveTranslation(fieldId, languageCode, currentVariantId);
   const value = translation?.value || '';
   
   useEffect(() => {
@@ -39,7 +38,7 @@ export function EditableField({
   };
   
   const handleSave = () => {
-    updateTranslation(fieldId, languageCode, localValue);
+    updateTranslation(fieldId, languageCode, localValue, currentVariantId);
     setIsEditing(false);
   };
   
