@@ -57,7 +57,8 @@ interface Store {
   reorderField: (assetId: string, fromFieldId: string, toFieldId: string) => void;
   
   // Language management
-  addLanguage: (languageCode: string) => void;
+  addLanguage: (languageCode: string, name?: string, flag?: string) => void;
+  removeLanguage: (languageCode: string) => void;
   
   // Project settings
   updateProjectName: (name: string) => void;
@@ -396,7 +397,7 @@ export const useStore = create<Store>((set, get) => ({
     };
   }),
   
-  addLanguage: (languageCode: string) => set((state) => {
+  addLanguage: (languageCode: string, name?: string, flag?: string) => set((state) => {
     if (!state.project) return state;
     
     // Check if language already exists
@@ -406,8 +407,8 @@ export const useStore = create<Store>((set, get) => ({
     
     const newLanguage: Language = {
       code: languageCode,
-      name: languageCode.toUpperCase(),
-      flag: '🌐'
+      name: name || languageCode.toUpperCase(),
+      flag: flag || '🌐'
     };
     
     // Create empty translations for all fields in the new language
@@ -431,6 +432,18 @@ export const useStore = create<Store>((set, get) => ({
         languages: [...state.project.languages, newLanguage]
       },
       translations: [...state.translations, ...newTranslations]
+    };
+  }),
+  
+  removeLanguage: (languageCode: string) => set((state) => {
+    if (!state.project || languageCode === 'en') return state; // Can't remove English
+    
+    return {
+      project: {
+        ...state.project,
+        languages: state.project.languages.filter(l => l.code !== languageCode)
+      },
+      translations: state.translations.filter(t => t.languageCode !== languageCode)
     };
   }),
   
