@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak, Table, TableRow, TableCell, WidthType, Packer } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak, Packer } from 'docx';
 import type { Project, Translation } from '../types';
 import { saveAs } from 'file-saver';
 
@@ -81,7 +81,9 @@ export async function exportToWord(
   }
 
   sections[0].children.push(...tocChildren);
-  sections[0].children.push(new PageBreak());
+  sections[0].children.push(new Paragraph({
+    children: [new PageBreak()],
+  }));
 
   const currentLanguage = languageCode === 'all' ? 'en' : languageCode;
 
@@ -146,7 +148,7 @@ export async function exportToWord(
         })
       );
 
-      galleryImages.forEach((asset, index) => {
+      galleryImages.forEach((asset) => {
         pdpChildren.push(
           new Paragraph({
             text: asset.name,
