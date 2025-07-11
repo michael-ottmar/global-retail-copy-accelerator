@@ -83,6 +83,10 @@ export function createSampleProject(): Project {
     sourceLanguage: 'en',
     createdAt: new Date(),
     updatedAt: new Date(),
+    skuVariants: [
+      { id: '1', name: 'Standard', isBase: true, order: 0 },
+      { id: '2', name: 'Deluxe', isBase: false, order: 1 }
+    ],
   };
 }
 

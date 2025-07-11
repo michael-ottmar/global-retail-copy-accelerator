@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project, Asset, Field, Translation, Language, FieldType, ProjectSettings } from '../types';
+import type { Project, Asset, Field, Translation, Language, FieldType, ProjectSettings, SkuVariant } from '../types';
 import { getSampleContent } from '../utils/sampleContent';
 
 interface Store {
@@ -11,6 +11,7 @@ interface Store {
   currentView: 'table' | 'mockup' | 'word';
   selectedLanguage: string;
   selectedDeliverable: string | null;
+  selectedVariant: string | null;
   searchQuery: string;
   addingLanguage: boolean;
   lastSaved: Date | null;
@@ -34,6 +35,7 @@ interface Store {
   setCurrentView: (view: 'table' | 'mockup' | 'word') => void;
   setSelectedLanguage: (language: string) => void;
   setSelectedDeliverable: (deliverableId: string | null) => void;
+  setSelectedVariant: (variantId: string | null) => void;
   setSearchQuery: (query: string) => void;
   setAddingLanguage: (adding: boolean) => void;
   setShowVariableColumn: (show: boolean) => void;
@@ -64,6 +66,9 @@ interface Store {
   updateProjectName: (name: string) => void;
   updateProjectSettings: (settings: ProjectSettings) => void;
   
+  // SKU Variants
+  updateSkuVariants: (variants: SkuVariant[]) => void;
+  
   // Sample data
   fillSampleContent: () => void;
   clearAllTranslations: () => void;
@@ -76,6 +81,7 @@ export const useStore = create<Store>((set, get) => ({
   currentView: 'table',
   selectedLanguage: 'all',
   selectedDeliverable: null,
+  selectedVariant: null,
   searchQuery: '',
   addingLanguage: false,
   lastSaved: null,
@@ -114,6 +120,7 @@ export const useStore = create<Store>((set, get) => ({
   setCurrentView: (view) => set({ currentView: view }),
   setSelectedLanguage: (language) => set({ selectedLanguage: language }),
   setSelectedDeliverable: (deliverableId) => set({ selectedDeliverable: deliverableId }),
+  setSelectedVariant: (variantId) => set({ selectedVariant: variantId }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setAddingLanguage: (adding) => set({ addingLanguage: adding }),
   setShowVariableColumn: (show) => set({ showVariableColumn: show }),
@@ -467,6 +474,17 @@ export const useStore = create<Store>((set, get) => ({
           ...state.project.settings,
           ...settings
         },
+        updatedAt: new Date()
+      }
+    };
+  }),
+  
+  updateSkuVariants: (variants) => set((state) => {
+    if (!state.project) return state;
+    return {
+      project: {
+        ...state.project,
+        skuVariants: variants,
         updatedAt: new Date()
       }
     };

@@ -1,25 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { XIcon, PlusIcon, GripVerticalIcon, Trash2Icon } from 'lucide-react';
+import { useStore } from '../store';
+import type { SkuVariant } from '../types';
 
 interface SkuVariantsOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface SkuVariant {
-  id: string;
-  name: string;
-  isBase: boolean;
-  order: number;
-}
-
 export function SkuVariantsOverlay({ isOpen, onClose }: SkuVariantsOverlayProps) {
-  const [variants, setVariants] = useState<SkuVariant[]>([
-    { id: '1', name: 'Standard', isBase: true, order: 0 }
-  ]);
+  const { project, updateSkuVariants, setSelectedVariant } = useStore();
+  const [variants, setVariants] = useState<SkuVariant[]>([]);
   const [newVariantName, setNewVariantName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedItem, setDraggedItem] = useState<SkuVariant | null>(null);
+
+  // Initialize variants from project
+  useEffect(() => {
+    if (project?.skuVariants) {
+      setVariants(project.skuVariants);
+    } else {
+      // Default to single Standard variant
+      setVariants([{ id: '1', name: 'Standard', isBase: true, order: 0 }]);
+    }
+  }, [project?.skuVariants, isOpen]);
 
   if (!isOpen) return null;
 
@@ -73,7 +77,14 @@ export function SkuVariantsOverlay({ isOpen, onClose }: SkuVariantsOverlayProps)
   };
 
   const handleSave = () => {
-    // TODO: Save variants to store
+    updateSkuVariants(variants);
+    // If we have multiple variants and none selected, select the base
+    if (variants.length >= 2 && !project?.skuVariants) {
+      const baseVariant = variants.find(v => v.isBase);
+      if (baseVariant) {
+        setSelectedVariant(baseVariant.id);
+      }
+    }
     onClose();
   };
 

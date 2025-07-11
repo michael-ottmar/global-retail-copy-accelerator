@@ -38,6 +38,13 @@ export interface Language {
   flag?: string;
 }
 
+export interface SkuVariant {
+  id: string;
+  name: string;
+  isBase: boolean;
+  order: number;
+}
+
 export interface ProjectSettings {
   clientName?: string;
   customInstructions?: string;
@@ -58,4 +65,5 @@ export interface Project {
   createdAt: Date;
   updatedAt: Date;
   settings?: ProjectSettings;
+  skuVariants?: SkuVariant[];
 }

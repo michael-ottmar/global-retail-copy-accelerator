@@ -38,6 +38,8 @@ export function Header() {
     setSearchQuery,
     selectedDeliverable,
     setSelectedDeliverable,
+    selectedVariant,
+    setSelectedVariant,
     lastSaved,
     undo,
     redo,
@@ -208,6 +210,23 @@ export function Header() {
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              {/* SKU Variant Selector - Only show if 2+ variants */}
+              {project?.skuVariants && project.skuVariants.length >= 2 && (
+                <select
+                  value={selectedVariant || project.skuVariants.find(v => v.isBase)?.id || ''}
+                  onChange={(e) => setSelectedVariant(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {project.skuVariants
+                    .sort((a, b) => a.order - b.order)
+                    .map((variant) => (
+                      <option key={variant.id} value={variant.id}>
+                        {variant.name} {variant.isBase ? '(Base)' : ''}
+                      </option>
+                    ))}
+                </select>
+              )}
+              
               {/* Language Selector */}
               <select
                 value={selectedLanguage}
@@ -280,7 +299,7 @@ export function Header() {
                 className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
               >
                 <PackageIcon className="w-4 h-4 mr-1.5" />
-                <span>0 SKU Variants</span>
+                <span>{project?.skuVariants?.length || 0} SKU Variants</span>
               </button>
               <span className="text-gray-400">•</span>
               
