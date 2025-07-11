@@ -11,9 +11,12 @@ import {
   CheckIcon,
   UndoIcon,
   RedoIcon,
-  FileTextIcon
+  FileTextIcon,
+  ChevronDownIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
+import { exportToWord } from '../utils/exportWord';
+import { exportToHtml } from '../utils/exportHtml';
 import { useState, useEffect } from 'react';
 
 export function Header() {
@@ -39,6 +42,7 @@ export function Header() {
   } = useStore();
   
   const [showAutoSaved, setShowAutoSaved] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
     if (lastSaved) {
@@ -47,6 +51,17 @@ export function Header() {
       return () => clearTimeout(timer);
     }
   }, [lastSaved]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showExportMenu && !(event.target as HTMLElement).closest('.export-menu-container')) {
+        setShowExportMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showExportMenu]);
 
   const handleExportJSON = () => {
     if (!project) return;
@@ -118,13 +133,54 @@ export function Header() {
               <SettingsIcon className="w-5 h-5" />
             </button>
 
-            <button
-              onClick={handleExportJSON}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200"
-            >
-              <DownloadIcon className="w-4 h-4 inline mr-1.5" />
-              Export
-            </button>
+            <div className="relative export-menu-container">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200 flex items-center"
+              >
+                <DownloadIcon className="w-4 h-4 mr-1.5" />
+                Export
+                <ChevronDownIcon className="w-4 h-4 ml-1" />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={() => {
+                      handleExportJSON();
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  >
+                    <FileTextIcon className="w-4 h-4 mr-2" />
+                    Export as JSON
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (project) {
+                        await exportToWord(project, translations, selectedLanguage, { sectionToggles });
+                        setShowExportMenu(false);
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  >
+                    <FileTextIcon className="w-4 h-4 mr-2" />
+                    Export as Word (.docx)
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (project) {
+                        exportToHtml(project, translations, selectedLanguage, { sectionToggles });
+                        setShowExportMenu(false);
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  >
+                    <FileTextIcon className="w-4 h-4 mr-2" />
+                    Export as HTML
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button className="px-3 py-1.5 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-lg flex items-center">
               <SparklesIcon className="w-4 h-4 mr-1.5" />
