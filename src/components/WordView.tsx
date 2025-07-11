@@ -80,7 +80,7 @@ export function WordView() {
                 {pdp.assets.filter(a => a.type === 'gallery').length > 0 && (
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold mb-3">Gallery Images</h3>
-                    {pdp.assets.filter(a => a.type === 'gallery').map((asset, index) => (
+                    {pdp.assets.filter(a => a.type === 'gallery').map((asset) => (
                       <div key={asset.id} className="mb-6 ml-4 group">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
