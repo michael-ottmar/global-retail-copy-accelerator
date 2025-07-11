@@ -22,9 +22,7 @@ import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { exportToWord } from '../utils/exportWord';
 import { exportToHtml } from '../utils/exportHtml';
 import { useState, useEffect } from 'react';
-import { SettingsOverlay } from './SettingsOverlay';
-import { LanguageOverlay } from './LanguageOverlay';
-import { SkuVariantsOverlay } from './SkuVariantsOverlay';
+import { UnifiedOverlay } from './UnifiedOverlay';
 
 export function Header() {
   const { 
@@ -52,9 +50,8 @@ export function Header() {
   
   const [showAutoSaved, setShowAutoSaved] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showLanguages, setShowLanguages] = useState(false);
-  const [showSkuVariants, setShowSkuVariants] = useState(false);
+  const [showUnifiedOverlay, setShowUnifiedOverlay] = useState(false);
+  const [unifiedOverlayTab, setUnifiedOverlayTab] = useState<'settings' | 'variants' | 'languages' | 'translations'>('settings');
 
   useEffect(() => {
     if (lastSaved) {
@@ -158,7 +155,10 @@ export function Header() {
             </div>
 
             <button 
-              onClick={() => setShowSettings(true)}
+              onClick={() => {
+                setUnifiedOverlayTab('settings');
+                setShowUnifiedOverlay(true);
+              }}
               className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
             >
               <SettingsIcon className="w-5 h-5" />
@@ -311,7 +311,10 @@ export function Header() {
             <div className="flex items-center space-x-3 text-sm text-gray-600">
               {/* SKU Variants Button */}
               <button
-                onClick={() => setShowSkuVariants(true)}
+                onClick={() => {
+                  setUnifiedOverlayTab('variants');
+                  setShowUnifiedOverlay(true);
+                }}
                 className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
               >
                 <PackageIcon className="w-4 h-4 mr-1.5" />
@@ -321,7 +324,10 @@ export function Header() {
               
               {/* Language Management Button */}
               <button
-                onClick={() => setShowLanguages(true)}
+                onClick={() => {
+                  setUnifiedOverlayTab('languages');
+                  setShowUnifiedOverlay(true);
+                }}
                 className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
               >
                 <div className="w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center mr-1.5 hover:border-gray-600">
@@ -333,7 +339,10 @@ export function Header() {
               
               {/* Translations Button */}
               <button
-                onClick={() => {/* TODO: Show translations overlay */}}
+                onClick={() => {
+                  setUnifiedOverlayTab('translations');
+                  setShowUnifiedOverlay(true);
+                }}
                 className="flex items-center hover:text-gray-800 transition-colors cursor-pointer"
               >
                 <LanguagesIcon className="w-4 h-4 mr-1.5" />
@@ -365,22 +374,11 @@ export function Header() {
         </div>
       )}
       
-      {/* Settings Overlay */}
-      <SettingsOverlay 
-        isOpen={showSettings} 
-        onClose={() => setShowSettings(false)} 
-      />
-      
-      {/* Language Overlay */}
-      <LanguageOverlay
-        isOpen={showLanguages}
-        onClose={() => setShowLanguages(false)}
-      />
-      
-      {/* SKU Variants Overlay */}
-      <SkuVariantsOverlay
-        isOpen={showSkuVariants}
-        onClose={() => setShowSkuVariants(false)}
+      {/* Unified Overlay */}
+      <UnifiedOverlay 
+        isOpen={showUnifiedOverlay} 
+        onClose={() => setShowUnifiedOverlay(false)}
+        defaultTab={unifiedOverlayTab}
       />
     </>
   );
