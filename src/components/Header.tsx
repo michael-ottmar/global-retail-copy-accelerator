@@ -18,6 +18,7 @@ import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { exportToWord } from '../utils/exportWord';
 import { exportToHtml } from '../utils/exportHtml';
 import { useState, useEffect } from 'react';
+import { SettingsOverlay } from './SettingsOverlay';
 
 export function Header() {
   const { 
@@ -43,6 +44,7 @@ export function Header() {
   
   const [showAutoSaved, setShowAutoSaved] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (lastSaved) {
@@ -129,7 +131,10 @@ export function Header() {
               </button>
             </div>
 
-            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+            >
               <SettingsIcon className="w-5 h-5" />
             </button>
 
@@ -306,6 +311,12 @@ export function Header() {
           </div>
         </div>
       )}
+      
+      {/* Settings Overlay */}
+      <SettingsOverlay 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </>
   );
 }

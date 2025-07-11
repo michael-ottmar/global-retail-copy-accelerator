@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project, Asset, Field, Translation, Language, FieldType } from '../types';
+import type { Project, Asset, Field, Translation, Language, FieldType, ProjectSettings } from '../types';
 import { getSampleContent } from '../utils/sampleContent';
 
 interface Store {
@@ -58,6 +58,10 @@ interface Store {
   
   // Language management
   addLanguage: (languageCode: string) => void;
+  
+  // Project settings
+  updateProjectName: (name: string) => void;
+  updateProjectSettings: (settings: ProjectSettings) => void;
   
   // Sample data
   fillSampleContent: () => void;
@@ -427,6 +431,31 @@ export const useStore = create<Store>((set, get) => ({
         languages: [...state.project.languages, newLanguage]
       },
       translations: [...state.translations, ...newTranslations]
+    };
+  }),
+  
+  updateProjectName: (name) => set((state) => {
+    if (!state.project) return state;
+    return {
+      project: {
+        ...state.project,
+        name,
+        updatedAt: new Date()
+      }
+    };
+  }),
+  
+  updateProjectSettings: (settings) => set((state) => {
+    if (!state.project) return state;
+    return {
+      project: {
+        ...state.project,
+        settings: {
+          ...state.project.settings,
+          ...settings
+        },
+        updatedAt: new Date()
+      }
     };
   }),
   

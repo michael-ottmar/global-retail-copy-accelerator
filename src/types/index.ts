@@ -38,6 +38,17 @@ export interface Language {
   flag?: string;
 }
 
+export interface ProjectSettings {
+  clientName?: string;
+  customInstructions?: string;
+  referenceFiles?: {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+  }[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -46,4 +57,5 @@ export interface Project {
   sourceLanguage: string;
   createdAt: Date;
   updatedAt: Date;
+  settings?: ProjectSettings;
 }
