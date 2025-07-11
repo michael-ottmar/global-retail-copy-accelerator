@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XIcon, PlusIcon } from 'lucide-react';
 import { useStore } from '../store';
-import { standardLanguages, getLanguageDisplayName, type LanguageOption } from '../utils/languageCodes';
+import { standardLanguages, type LanguageOption } from '../utils/languageCodes';
 
 interface LanguageOverlayProps {
   isOpen: boolean;
@@ -66,7 +66,7 @@ export function LanguageOverlay({ isOpen, onClose }: LanguageOverlayProps) {
           addLanguage(code, standardLang.name, standardLang.flag);
         } else {
           // Handle custom language
-          const [lang, market] = code.split('-');
+          const [lang] = code.split('-');
           addLanguage(code, lang.charAt(0).toUpperCase() + lang.slice(1), '🌐');
         }
       }
