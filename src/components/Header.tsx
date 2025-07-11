@@ -10,7 +10,8 @@ import {
   RefreshCwIcon,
   CheckIcon,
   UndoIcon,
-  RedoIcon
+  RedoIcon,
+  FileTextIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { useState, useEffect } from 'react';
@@ -100,6 +101,17 @@ export function Header() {
                 <EyeIcon className="w-4 h-4" />
                 <span className="ml-1.5">Mockup</span>
               </button>
+              <button
+                onClick={() => setCurrentView('word')}
+                className={`flex items-center px-3 py-1.5 text-sm font-medium transition-colors ${
+                  currentView === 'word'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <FileTextIcon className="w-4 h-4" />
+                <span className="ml-1.5">Word</span>
+              </button>
             </div>
 
             <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
@@ -122,8 +134,8 @@ export function Header() {
         </div>
       </header>
 
-      {/* Secondary Toolbar - Show in both views */}
-      {(currentView === 'table' || currentView === 'mockup') && (
+      {/* Secondary Toolbar - Show in all views */}
+      {(currentView === 'table' || currentView === 'mockup' || currentView === 'word') && (
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">

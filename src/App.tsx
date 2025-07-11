@@ -3,6 +3,7 @@ import { useStore } from './store';
 import { Header } from './components/Header';
 import { TableView } from './components/TableView';
 import { MockupView } from './components/MockupView';
+import { WordView } from './components/WordView';
 import { createSampleProject } from './utils/sampleData';
 
 function App() {
@@ -40,7 +41,7 @@ function App() {
     <div className="h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1 overflow-hidden">
-        {currentView === 'table' ? <TableView /> : <MockupView />}
+        {currentView === 'table' ? <TableView /> : currentView === 'mockup' ? <MockupView /> : <WordView />}
       </main>
     </div>
   );

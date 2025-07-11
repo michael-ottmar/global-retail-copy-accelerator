@@ -8,7 +8,7 @@ interface Store {
   translations: Translation[];
   
   // UI state
-  currentView: 'table' | 'mockup';
+  currentView: 'table' | 'mockup' | 'word';
   selectedLanguage: string;
   selectedDeliverable: string | null;
   searchQuery: string;
@@ -31,7 +31,7 @@ interface Store {
   setProject: (project: Project) => void;
   setTranslations: (translations: Translation[]) => void;
   updateTranslation: (fieldId: string, languageCode: string, value: string) => void;
-  setCurrentView: (view: 'table' | 'mockup') => void;
+  setCurrentView: (view: 'table' | 'mockup' | 'word') => void;
   setSelectedLanguage: (language: string) => void;
   setSelectedDeliverable: (deliverableId: string | null) => void;
   setSearchQuery: (query: string) => void;
