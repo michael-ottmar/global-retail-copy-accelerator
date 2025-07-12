@@ -27,7 +27,7 @@ export function UnifiedOverlay({ isOpen, onClose, defaultTab = 'settings' }: Uni
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-40"
+        className="fixed inset-0 bg-black/60 z-40"
         onClick={onClose}
       />
       
@@ -84,11 +84,11 @@ function SettingsContent() {
 }
 
 function VariantsContent() {
-  return <SkuVariantsOverlay isOpen={true} onClose={() => {}} />;
+  return <SkuVariantsOverlay isOpen={true} onClose={() => {}} isEmbedded={true} />;
 }
 
 function LanguagesContent() {
-  return <LanguageOverlay isOpen={true} onClose={() => {}} />;
+  return <LanguageOverlay isOpen={true} onClose={() => {}} isEmbedded={true} />;
 }
 
 function TranslationsContent() {

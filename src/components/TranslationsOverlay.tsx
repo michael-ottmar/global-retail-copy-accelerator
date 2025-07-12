@@ -216,7 +216,7 @@ export function TranslationsOverlay({ isOpen, onClose, isEmbedded = false }: Tra
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-40"
+        className="fixed inset-0 bg-black/60 z-40"
         onClick={onClose}
       />
       

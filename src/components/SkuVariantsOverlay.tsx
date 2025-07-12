@@ -6,9 +6,10 @@ import type { SkuVariant } from '../types';
 interface SkuVariantsOverlayProps {
   isOpen: boolean;
   onClose: () => void;
+  isEmbedded?: boolean;
 }
 
-export function SkuVariantsOverlay({ isOpen, onClose }: SkuVariantsOverlayProps) {
+export function SkuVariantsOverlay({ isOpen, onClose, isEmbedded = false }: SkuVariantsOverlayProps) {
   const { project, updateSkuVariants, setSelectedVariant } = useStore();
   const [variants, setVariants] = useState<SkuVariant[]>([]);
   const [newVariantName, setNewVariantName] = useState('');
@@ -88,11 +89,154 @@ export function SkuVariantsOverlay({ isOpen, onClose }: SkuVariantsOverlayProps)
     onClose();
   };
 
+  const content = (
+    <div className={`${isEmbedded ? 'h-full flex flex-col' : ''}`}>
+      {/* Content */}
+      <div className={`${isEmbedded ? 'flex-1 overflow-y-auto p-6' : 'flex-1 overflow-y-auto p-6'}`}>
+        <p className="text-gray-600 mb-6">
+          Create and manage product variants. The base variant's content can be inherited by other variants.
+        </p>
+
+        {/* Variants List */}
+        <div className="space-y-3 mb-6">
+          {variants.map((variant) => (
+            <div
+              key={variant.id}
+              draggable={!variant.isBase}
+              onDragStart={(e) => handleDragStart(e, variant)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, variant)}
+              className={`flex items-center p-4 bg-gray-50 rounded-lg border ${
+                variant.isBase ? 'border-purple-300 bg-purple-50' : 'border-gray-200 cursor-move'
+              } group hover:border-gray-300 transition-colors`}
+            >
+              {!variant.isBase && (
+                <GripVerticalIcon className="w-5 h-5 text-gray-400 mr-3" />
+              )}
+              
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <span className="font-medium">{variant.name}</span>
+                  {variant.isBase && (
+                    <span className="ml-2 text-xs bg-purple-600 text-white px-2 py-0.5 rounded">
+                      Base Variant
+                    </span>
+                  )}
+                </div>
+                {variant.isBase && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Other variants can inherit content from this variant
+                  </p>
+                )}
+              </div>
+
+              {!variant.isBase && (
+                <button
+                  onClick={() => handleDeleteVariant(variant.id)}
+                  className="opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:text-red-700 transition-opacity"
+                  title="Delete variant"
+                >
+                  <Trash2Icon className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add Variant */}
+        {!showAddForm ? (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center text-purple-600 hover:text-purple-700"
+          >
+            <PlusIcon className="w-5 h-5 mr-1" />
+            Add variant
+          </button>
+        ) : (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Variant Name
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newVariantName}
+                onChange={(e) => setNewVariantName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddVariant();
+                  if (e.key === 'Escape') {
+                    setShowAddForm(false);
+                    setNewVariantName('');
+                  }
+                }}
+                placeholder="e.g., Deluxe, Ultimate"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                autoFocus
+              />
+              <button
+                onClick={handleAddVariant}
+                disabled={!newVariantName.trim()}
+                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  setNewVariantName('');
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Instructions */}
+        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+          <h3 className="font-medium text-blue-900 mb-2">How variants work</h3>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• The base variant contains the primary content</li>
+            <li>• Other variants can inherit content from the base variant</li>
+            <li>• Override specific fields in each variant as needed</li>
+            <li>• Drag variants to reorder them</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+        <div className="text-sm text-gray-600">
+          {variants.length} variant{variants.length !== 1 ? 's' : ''}
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-purple-500 text-white hover:bg-purple-600 rounded-lg transition-colors"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isEmbedded) {
+    return content;
+  }
+
   return (
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-40"
+        className="fixed inset-0 bg-black/60 z-40"
         onClick={onClose}
       />
       
@@ -110,140 +254,7 @@ export function SkuVariantsOverlay({ isOpen, onClose }: SkuVariantsOverlayProps)
             </button>
           </div>
           
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <p className="text-gray-600 mb-6">
-              Create and manage product variants. The base variant's content can be inherited by other variants.
-            </p>
-
-            {/* Variants List */}
-            <div className="space-y-3 mb-6">
-              {variants.map((variant) => (
-                <div
-                  key={variant.id}
-                  draggable={!variant.isBase}
-                  onDragStart={(e) => handleDragStart(e, variant)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, variant)}
-                  className={`flex items-center p-4 bg-gray-50 rounded-lg border ${
-                    variant.isBase ? 'border-purple-300 bg-purple-50' : 'border-gray-200 cursor-move'
-                  } group hover:border-gray-300 transition-colors`}
-                >
-                  {!variant.isBase && (
-                    <GripVerticalIcon className="w-5 h-5 text-gray-400 mr-3" />
-                  )}
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <span className="font-medium">{variant.name}</span>
-                      {variant.isBase && (
-                        <span className="ml-2 text-xs bg-purple-600 text-white px-2 py-0.5 rounded">
-                          Base Variant
-                        </span>
-                      )}
-                    </div>
-                    {variant.isBase && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Other variants can inherit content from this variant
-                      </p>
-                    )}
-                  </div>
-
-                  {!variant.isBase && (
-                    <button
-                      onClick={() => handleDeleteVariant(variant.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:text-red-700 transition-opacity"
-                      title="Delete variant"
-                    >
-                      <Trash2Icon className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Add Variant */}
-            {!showAddForm ? (
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="flex items-center text-purple-600 hover:text-purple-700"
-              >
-                <PlusIcon className="w-5 h-5 mr-1" />
-                Add variant
-              </button>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Variant Name
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newVariantName}
-                    onChange={(e) => setNewVariantName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddVariant();
-                      if (e.key === 'Escape') {
-                        setShowAddForm(false);
-                        setNewVariantName('');
-                      }
-                    }}
-                    placeholder="e.g., Deluxe, Ultimate"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleAddVariant}
-                    disabled={!newVariantName.trim()}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setNewVariantName('');
-                    }}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Instructions */}
-            <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">How variants work</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• The base variant contains the primary content</li>
-                <li>• Other variants can inherit content from the base variant</li>
-                <li>• Override specific fields in each variant as needed</li>
-                <li>• Drag variants to reorder them</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-between items-center p-6 border-t bg-gray-50">
-            <div className="text-sm text-gray-600">
-              {variants.length} variant{variants.length !== 1 ? 's' : ''}
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-purple-500 text-white hover:bg-purple-600 rounded-lg transition-colors"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
+          {content}
         </div>
       </div>
     </>
