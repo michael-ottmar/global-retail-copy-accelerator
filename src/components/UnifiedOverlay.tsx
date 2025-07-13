@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { XIcon, SettingsIcon, PackageIcon, LanguagesIcon, FileTextIcon } from 'lucide-react';
 import { SettingsOverlay } from './SettingsOverlay';
 import { LanguageOverlay } from './LanguageOverlay';
@@ -13,6 +13,13 @@ interface UnifiedOverlayProps {
 
 export function UnifiedOverlay({ isOpen, onClose, defaultTab = 'settings' }: UnifiedOverlayProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+
+  // Update active tab when defaultTab changes
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab, isOpen]);
 
   if (!isOpen) return null;
 
