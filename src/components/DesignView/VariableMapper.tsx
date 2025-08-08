@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FigmaNode, ParsedComponent, VariableMapping } from './types';
+import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
 import { LinkIcon, UnlinkIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react';
 import type { Deliverable } from '../../types';
 
@@ -23,7 +23,7 @@ export function VariableMapper({
 
   useEffect(() => {
     // Extract all text nodes from parsed components
-    const extractTextNodes = (components: ParsedComponent[]): ParsedComponent[] => {
+    const extractTextNodes = (): ParsedComponent[] => {
       const nodes: ParsedComponent[] = [];
       
       const traverse = (comp: ParsedComponent) => {
@@ -37,7 +37,7 @@ export function VariableMapper({
       return nodes;
     };
 
-    setTextNodes(extractTextNodes(parsedComponents));
+    setTextNodes(extractTextNodes());
     
     // Auto-suggest mappings based on naming conventions
     generateSuggestions();
@@ -108,8 +108,6 @@ export function VariableMapper({
   };
 
   const handleAutoMap = () => {
-    const newMappings = new Map(variableMappings);
-    
     suggestions.forEach((path, nodeId) => {
       if (!variableMappings.has(nodeId)) {
         handleMapVariable(nodeId, path);

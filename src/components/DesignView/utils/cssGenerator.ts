@@ -1,5 +1,5 @@
-import { ParsedComponent, FigmaNode } from '../types';
-import React from 'react';
+import type { ParsedComponent, FigmaNode } from '../types';
+import type React from 'react';
 
 export function generateCSS(component: ParsedComponent): React.CSSProperties {
   const styles: React.CSSProperties = {};

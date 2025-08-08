@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useStore } from '../../store';
 import { FrameSelector } from './FrameSelector';
 import { FrameRenderer } from './FrameRenderer';
 import { VariableMapper } from './VariableMapper';
-import { FigmaNode, ParsedComponent, VariableMapping } from './types';
+import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
 import { figmaApi } from '../../services/figmaApi';
 import { KeyIcon } from 'lucide-react';
 
@@ -13,7 +13,7 @@ export function DesignView() {
   const [fileName, setFileName] = useState('');
   const [frames, setFrames] = useState<FigmaNode[]>([]);
   const [selectedFrame, setSelectedFrame] = useState<FigmaNode | null>(null);
-  const [parsedComponents, setParsedComponents] = useState<ParsedComponent[]>([]);
+  const [parsedComponents] = useState<ParsedComponent[]>([]);
   const [variableMappings, setVariableMappings] = useState<Map<string, VariableMapping>>(new Map());
   const [viewMode, setViewMode] = useState<'figma' | 'mapped' | 'split'>('figma');
   const [error, setError] = useState<string | null>(null);
@@ -218,10 +218,10 @@ export function DesignView() {
               
               <button
                 onClick={connectToFigma}
-                disabled={!fileKey || connectionStatus === 'connecting'}
+                disabled={!fileKey || connectionStatus !== 'disconnected'}
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
-                {connectionStatus === 'connecting' ? 'Connecting...' : 
+                {connectionStatus !== 'disconnected' ? 'Connecting...' : 
                  fileKey.toLowerCase() === 'test' ? 'Load Mock Data' : 'Connect'}
               </button>
             </div>

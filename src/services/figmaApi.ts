@@ -1,4 +1,4 @@
-import { FigmaNode } from '../components/DesignView/types';
+import type { FigmaNode } from '../components/DesignView/types';
 
 // For development, we'll use a proxy or CORS-enabled endpoint
 // In production, this should go through your backend

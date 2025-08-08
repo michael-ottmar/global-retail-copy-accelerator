@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FigmaNode, ParsedComponent, VariableMapping } from './types';
+import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
 import { parseFrameToComponents } from './utils/frameParser';
 import { generateCSS } from './utils/cssGenerator';
 
@@ -12,7 +12,6 @@ interface FrameRendererProps {
 
 export function FrameRenderer({ 
   frame, 
-  parsedComponents, 
   mode, 
   variableMappings 
 }: FrameRendererProps) {
@@ -27,7 +26,7 @@ export function FrameRenderer({
     setLoading(false);
   }, [frame]);
 
-  const renderComponent = (component: ParsedComponent): JSX.Element => {
+  const renderComponent = (component: ParsedComponent): React.ReactElement => {
     // Apply CSS styles generated from Figma properties
     const styles = generateCSS(component);
     

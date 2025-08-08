@@ -1,4 +1,4 @@
-import { FigmaNode, ParsedComponent } from '../types';
+import type { FigmaNode, ParsedComponent } from '../types';
 
 export function parseFrameToComponents(frame: FigmaNode): ParsedComponent[] {
   const components: ParsedComponent[] = [];

@@ -1,4 +1,4 @@
-import { FigmaNode } from './types';
+import type { FigmaNode } from './types';
 import { FrameIcon, ChevronRightIcon } from 'lucide-react';
 
 interface FrameSelectorProps {
