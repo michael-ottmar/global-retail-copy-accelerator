@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { FrameSelector } from './FrameSelector';
 import { FrameRenderer } from './FrameRenderer';
@@ -6,7 +6,8 @@ import { VariableMapper } from './VariableMapper';
 import { ImportExport } from './ImportExport';
 import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
 import { secureFigmaApi } from '../../services/figmaApiSecure';
-import { KeyIcon, ShieldIcon, AlertTriangleIcon } from 'lucide-react';
+import { mcpFigmaClient } from '../../services/mcpFigmaClient';
+import { KeyIcon, ShieldIcon, AlertTriangleIcon, ServerIcon } from 'lucide-react';
 
 export function DesignView() {
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
@@ -21,23 +22,61 @@ export function DesignView() {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [accessToken, setAccessToken] = useState('');
   const [allowedFiles, setAllowedFiles] = useState<string>('');
+  const [mcpAvailable, setMcpAvailable] = useState<boolean | null>(null);
 
   const { project } = useStore();
+
+  // Check for MCP server on component mount
+  useEffect(() => {
+    const checkMCP = async () => {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const available = await mcpFigmaClient.checkAvailability();
+        setMcpAvailable(available);
+        if (available) {
+          console.log('✅ MCP Figma server detected at http://127.0.0.1:3845/mcp');
+        }
+      } else {
+        setMcpAvailable(false);
+      }
+    };
+    checkMCP();
+  }, []);
 
   const connectToFigma = async () => {
     setConnectionStatus('connecting');
     setError(null);
     
     try {
-      // Check if we have an access token
-      if (!secureFigmaApi.hasToken() && !fileKey.toLowerCase().includes('test')) {
-        setError('Please add your Figma access token first (click the key icon)');
-        setConnectionStatus('disconnected');
-        return;
+      let fileData = null;
+      
+      // Try MCP first if available (local only)
+      if (mcpAvailable && fileKey !== 'test') {
+        try {
+          console.log('Attempting to connect via MCP...');
+          fileData = await mcpFigmaClient.getFile(fileKey);
+          console.log('MCP connection successful!');
+        } catch (mcpError) {
+          console.log('MCP failed, falling back to API:', mcpError);
+          // Fall through to try API
+        }
       }
       
-      // Use mock data for testing or real API
-      const fileData = await secureFigmaApi.getFile(fileKey);
+      // Try API if MCP didn't work
+      if (!fileData) {
+        // Check if we have an access token
+        if (!secureFigmaApi.hasToken() && !fileKey.toLowerCase().includes('test')) {
+          if (mcpAvailable) {
+            setError('MCP connection failed. Add a Figma token or check MCP server.');
+          } else {
+            setError('Please add your Figma access token first (click the key icon)');
+          }
+          setConnectionStatus('disconnected');
+          return;
+        }
+        
+        // Use mock data for testing or real API
+        fileData = await secureFigmaApi.getFile(fileKey);
+      }
       
       setFileName(fileData.name || 'Figma File');
       setConnectionStatus('connected');
@@ -135,17 +174,29 @@ export function DesignView() {
             </div>
             
             {/* Connection Status */}
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                connectionStatus === 'connected' ? 'bg-green-500' : 
-                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
-                'bg-gray-400'
-              }`} />
-              <span className="text-sm text-gray-600">
-                {connectionStatus === 'connected' ? fileName : 
-                 connectionStatus === 'connecting' ? 'Connecting...' : 
-                 'Not connected'}
-              </span>
+            <div className="flex items-center gap-4">
+              {/* MCP Status (local only) */}
+              {mcpAvailable !== null && (
+                <div className="flex items-center gap-2">
+                  <ServerIcon className={`w-4 h-4 ${mcpAvailable ? 'text-green-600' : 'text-gray-400'}`} />
+                  <span className="text-xs text-gray-600">
+                    {mcpAvailable ? 'MCP Ready' : 'MCP Offline'}
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  connectionStatus === 'connected' ? 'bg-green-500' : 
+                  connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
+                  'bg-gray-400'
+                }`} />
+                <span className="text-sm text-gray-600">
+                  {connectionStatus === 'connected' ? fileName : 
+                   connectionStatus === 'connecting' ? 'Connecting...' : 
+                   'Not connected'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -249,7 +300,12 @@ export function DesignView() {
             )}
             
             <p className="text-sm text-gray-600 mb-4">
-              {secureFigmaApi.hasToken() ? 
+              {mcpAvailable ? (
+                <span className="flex items-center gap-2">
+                  <ServerIcon className="w-4 h-4 text-green-600" />
+                  MCP server detected! Enter a file key to connect directly.
+                </span>
+              ) : secureFigmaApi.hasToken() ? 
                 'Token active for this session only. Enter a Figma file key to connect.' :
                 'For testing, enter "test" as the file key to use mock data'}
             </p>
