@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copy Accelerator Bridge</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      color: #2c3e50;
+      background: #f8f9fa;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: white;
+      border-bottom: 1px solid #e1e4e8;
+      padding: 0 16px;
+    }
+    
+    .tab {
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: #586069;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .tab:hover {
+      color: #2c3e50;
+    }
+    
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+    
+    /* Content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #2c3e50;
+    }
+    
+    /* Status */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #f0f3f6;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.offline {
+      background: #dc3545;
+      animation: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #586069;
+      margin-bottom: 6px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-help {
+      font-size: 11px;
+      color: #959da5;
+      margin-top: 4px;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #5a67d8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #586069;
+      border: 1px solid #e1e4e8;
+    }
+    
+    .btn-secondary:hover {
+      background: #f6f8fa;
+    }
+    
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    /* Frame List */
+    .frame-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      background: white;
+    }
+    
+    .frame-item {
+      padding: 12px;
+      border-bottom: 1px solid #e1e4e8;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .frame-item:last-child {
+      border-bottom: none;
+    }
+    
+    .frame-item:hover {
+      background: #f6f8fa;
+    }
+    
+    .frame-item.selected {
+      background: #f0f3ff;
+      border-left: 3px solid #667eea;
+      padding-left: 9px;
+    }
+    
+    .frame-checkbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
+    .frame-info {
+      flex: 1;
+    }
+    
+    .frame-name {
+      font-weight: 500;
+      color: #2c3e50;
+      margin-bottom: 2px;
+    }
+    
+    .frame-meta {
+      font-size: 11px;
+      color: #959da5;
+    }
+    
+    /* Settings */
+    .settings-grid {
+      display: grid;
+      gap: 12px;
+    }
+    
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    
+    .setting-label {
+      font-size: 13px;
+      color: #2c3e50;
+    }
+    
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccd1d6;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    
+    /* Messages */
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .message-info {
+      background: #e7f3ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+    
+    .message-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .message-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+    }
+    
+    .message-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e1e4e8;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #959da5;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-state-text {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .empty-state-subtext {
+      font-size: 12px;
+    }
+    
+    /* Footer */
+    .footer {
+      padding: 16px;
+      background: white;
+      border-top: 1px solid #e1e4e8;
+      text-align: center;
+      font-size: 11px;
+      color: #959da5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🚀 Copy Accelerator Bridge</h1>
+      <p>Export Figma frames to your web application</p>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">Scan</button>
+      <button class="tab" data-tab="export">Export</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+    
+    <!-- Content -->
+    <div class="content">
+      <!-- Scan Tab -->
+      <div class="tab-content active" id="scan">
+        <div class="status">
+          <div class="status-dot"></div>
+          <span>Plugin active • <span id="selectionCount">0</span> items selected</span>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">📋 Available Frames</div>
+          <button class="btn btn-primary btn-block" id="scanBtn">
+            <span>🔍</span>
+            <span>Scan Document</span>
+          </button>
+          
+          <div id="frameListContainer" style="margin-top: 16px;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📦</div>
+              <div class="empty-state-text">No frames scanned yet</div>
+              <div class="empty-state-subtext">Click "Scan Document" to find frames</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">✨ Quick Actions</div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="selectAllBtn" disabled>
+              Select All
+            </button>
+            <button class="btn btn-secondary" id="clearSelectionBtn" disabled>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Export Tab -->
+      <div class="tab-content" id="export">
+        <div class="card">
+          <div class="card-title">🎯 Export Target</div>
+          
+          <div class="form-group">
+            <label class="form-label">Web App URL</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="targetUrl"
+              placeholder="https://your-app.vercel.app"
+              value="https://global-retail-copy-accelerator.vercel.app"
+            />
+            <div class="form-help">Enter the URL of your Copy Accelerator instance</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Export Options</label>
+            <div class="settings-grid">
+              <div class="setting-row">
+                <span class="setting-label">Include Images</span>
+                <label class="switch">
+                  <input type="checkbox" id="includeImages" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label">Include Styles</span>
+                <label class="switch">
+                  <input type="checkbox" id="includeStyles" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="btn-group">
+            <button class="btn btn-success" id="exportSelectedBtn">
+              <span>📤</span>
+              <span>Export Selected</span>
+            </button>
+            <button class="btn btn-primary" id="exportAllBtn">
+              <span>📦</span>
+              <span>Export All</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">📋 Alternative Export</div>
+          <button class="btn btn-secondary btn-block" id="copyJsonBtn">
+            <span>📋</span>
+            <span>Copy as JSON</span>
+          </button>
+          <div class="form-help" style="margin-top: 8px;">
+            Copy frame data to clipboard for manual import
+          </div>
+        </div>
+        
+        <div id="exportMessages"></div>
+      </div>
+      
+      <!-- Settings Tab -->
+      <div class="tab-content" id="settings">
+        <div class="card">
+          <div class="card-title">🖼️ Image Export Settings</div>
+          
+          <div class="form-group">
+            <label class="form-label">Format</label>
+            <select class="form-input" id="imageFormat">
+              <option value="PNG">PNG (Best quality)</option>
+              <option value="JPG">JPG (Smaller size)</option>
+              <option value="SVG">SVG (Vector)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Scale</label>
+            <select class="form-input" id="imageScale">
+              <option value="1">1x</option>
+              <option value="2" selected>2x (Retina)</option>
+              <option value="3">3x</option>
+              <option value="4">4x</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">🔍 Frame Detection</div>
+          
+          <div class="form-group">
+            <label class="form-label">Pattern Keywords</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="patterns"
+              value="pdp, banner, gallery, module, crm, email"
+              placeholder="Comma-separated keywords"
+            />
+            <div class="form-help">Frames containing these keywords will be detected</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">ℹ️ About</div>
+          <p style="font-size: 12px; color: #586069; line-height: 1.6;">
+            Copy Accelerator Bridge connects your Figma designs to the web application.
+            Select frames and export them with a single click.
+          </p>
+          <p style="font-size: 11px; color: #959da5; margin-top: 12px;">
+            Version 1.0.0 • Built with ❤️ for Global Retail
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+      <span id="statusText">Ready to export</span>
+    </div>
+  </div>
+  
+  <script>
+    // State
+    let frames = [];
+    let selectedFrames = new Set();
+    let exportSettings = {
+      includeImages: true,
+      imageFormat: 'PNG',
+      imageScale: 2,
+      includeStyles: true,
+      targetUrl: 'https://global-retail-copy-accelerator.vercel.app'
+    };
+    
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+    
+    // Scan frames
+    document.getElementById('scanBtn').addEventListener('click', () => {
+      updateStatus('Scanning document...');
+      parent.postMessage({ pluginMessage: { type: 'scan-frames' } }, '*');
+    });
+    
+    // Export selected
+    document.getElementById('exportSelectedBtn').addEventListener('click', () => {
+      updateSettings();
+      updateStatus('Exporting selected frames...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'export-selected',
+          settings: exportSettings
+        } 
+      }, '*');
+    });
+    
+    // Export all
+    document.getElementById('exportAllBtn').addEventListener('click', () => {
+      updateSettings();
+      updateStatus('Exporting all frames...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'export-all',
+          settings: exportSettings
+        } 
+      }, '*');
+    });
+    
+    // Copy as JSON
+    document.getElementById('copyJsonBtn').addEventListener('click', () => {
+      updateSettings();
+      updateStatus('Preparing JSON...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'export-selected',
+          settings: exportSettings
+        } 
+      }, '*');
+    });
+    
+    // Select all frames
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+      });
+      selectedFrames = new Set(frames.map(f => f.id));
+      updateSelectionCount();
+    });
+    
+    // Clear selection
+    document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+      document.querySelectorAll('.frame-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      selectedFrames.clear();
+      updateSelectionCount();
+    });
+    
+    // Update settings from inputs
+    function updateSettings() {
+      exportSettings.targetUrl = document.getElementById('targetUrl').value;
+      exportSettings.includeImages = document.getElementById('includeImages').checked;
+      exportSettings.includeStyles = document.getElementById('includeStyles').checked;
+      exportSettings.imageFormat = document.getElementById('imageFormat').value;
+      exportSettings.imageScale = parseInt(document.getElementById('imageScale').value);
+    }
+    
+    // Update status text
+    function updateStatus(text) {
+      document.getElementById('statusText').textContent = text;
+    }
+    
+    // Update selection count
+    function updateSelectionCount() {
+      document.getElementById('selectionCount').textContent = selectedFrames.size;
+    }
+    
+    // Render frame list
+    function renderFrameList(foundFrames) {
+      frames = foundFrames;
+      const container = document.getElementById('frameListContainer');
+      
+      if (frames.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-text">No matching frames found</div>
+            <div class="empty-state-subtext">Try adjusting pattern keywords in Settings</div>
+          </div>
+        `;
+        document.getElementById('selectAllBtn').disabled = true;
+        document.getElementById('clearSelectionBtn').disabled = true;
+        return;
+      }
+      
+      document.getElementById('selectAllBtn').disabled = false;
+      document.getElementById('clearSelectionBtn').disabled = false;
+      
+      const list = document.createElement('div');
+      list.className = 'frame-list';
+      
+      frames.forEach(frame => {
+        const item = document.createElement('div');
+        item.className = 'frame-item';
+        
+        item.innerHTML = `
+          <input type="checkbox" class="frame-checkbox" data-id="${frame.id}">
+          <div class="frame-info">
+            <div class="frame-name">${frame.name}</div>
+            <div class="frame-meta">
+              ${frame.width}×${frame.height} • ${frame.childrenCount || 0} children
+            </div>
+          </div>
+        `;
+        
+        const checkbox = item.querySelector('.frame-checkbox');
+        checkbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            selectedFrames.add(frame.id);
+          } else {
+            selectedFrames.delete(frame.id);
+          }
+          updateSelectionCount();
+        });
+        
+        list.appendChild(item);
+      });
+      
+      container.innerHTML = '';
+      container.appendChild(list);
+      updateStatus(`Found ${frames.length} frames`);
+    }
+    
+    // Show message
+    function showMessage(type, text) {
+      const container = document.getElementById('exportMessages');
+      const message = document.createElement('div');
+      message.className = `message message-${type}`;
+      message.textContent = text;
+      container.appendChild(message);
+      
+      setTimeout(() => {
+        message.remove();
+      }, 5000);
+    }
+    
+    // Handle messages from plugin
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      
+      switch (msg.type) {
+        case 'frames-found':
+          renderFrameList(msg.frames);
+          break;
+          
+        case 'selection-info':
+          document.getElementById('selectionCount').textContent = msg.count;
+          break;
+          
+        case 'export-ready':
+          // Try multiple methods to send data
+          if (exportSettings.targetUrl) {
+            // For Vercel deployments, go directly to bridge page since API routes need special setup
+            const bridgeUrl = exportSettings.targetUrl.replace(/\/$/, '') + '/plugin-bridge.html';
+            
+            // Method 1: Try opening bridge page with data in URL hash (for smaller data)
+            if (msg.data.frames && msg.data.frames.length < 5 && !msg.data.images) {
+              // Small payload - can use URL hash
+              const encodedData = encodeURIComponent(JSON.stringify(msg.data));
+              window.open(`${bridgeUrl}#${encodedData}`, '_blank');
+              showMessage('success', '📤 Sent to bridge page - check the new tab');
+              updateStatus('Sent to bridge');
+            } else {
+              // Method 2: Copy to clipboard and open bridge page
+              copyToClipboard(msg.data);
+              window.open(bridgeUrl, '_blank');
+              showMessage('info', '📋 Data copied! Paste it in the bridge page that just opened');
+              updateStatus('Copied & opened bridge');
+            }
+          } else {
+            // Copy to clipboard
+            copyToClipboard(msg.data);
+          }
+          break;
+          
+        case 'copy-to-clipboard':
+          copyToClipboard(JSON.parse(msg.data));
+          break;
+          
+        case 'error':
+          showMessage('error', msg.message);
+          updateStatus('Error occurred');
+          break;
+      }
+    };
+    
+    // Copy to clipboard
+    function copyToClipboard(data) {
+      const text = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        showMessage('success', '📋 Copied to clipboard!');
+        updateStatus('Copied to clipboard');
+      }).catch(() => {
+        showMessage('error', 'Failed to copy to clipboard');
+      });
+    }
+    
+    // Initialize
+    updateSelectionCount();
+  </script>
+</body>
+</html>

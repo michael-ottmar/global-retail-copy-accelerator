@@ -1,0 +1,19 @@
+{
+  "name": "Copy Accelerator Bridge",
+  "id": "copy-accelerator-bridge",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://*.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://global-retail-copy-accelerator.vercel.app"
+    ],
+    "reasoning": "Connect to Copy Accelerator web application for live sync"
+  },
+  "capabilities": [],
+  "permissions": []
+}

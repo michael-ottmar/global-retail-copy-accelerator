@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Figma Plugin Bridge</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      color: #2c3e50;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .status.waiting {
+      background: #f0f8ff;
+      color: #0066cc;
+      border: 1px solid #b3d9ff;
+    }
+    .status.success {
+      background: #f0fff4;
+      color: #00802b;
+      border: 1px solid #b3ffcc;
+    }
+    .status.error {
+      background: #fff0f0;
+      color: #cc0000;
+      border: 1px solid #ffb3b3;
+    }
+    .info {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 20px 0;
+    }
+    .button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .button:hover {
+      background: #5a67d8;
+    }
+    .code {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      margin: 10px 0;
+      word-break: break-all;
+    }
+    #dataPreview {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      margin: 20px 0;
+      display: none;
+    }
+    .frames-list {
+      margin-top: 10px;
+    }
+    .frame-item {
+      padding: 8px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      margin: 5px 0;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Figma Plugin Bridge</h1>
+    <p style="color: #666; margin: 10px 0;">Receives data from Copy Accelerator Figma Plugin</p>
+    
+    <div id="status" class="status waiting">
+      ⏳ Waiting for data from Figma plugin...
+    </div>
+    
+    <div class="info">
+      <strong>How to use:</strong>
+      <ol style="margin: 10px 0; padding-left: 20px;">
+        <li>Open your Figma file</li>
+        <li>Run the Copy Accelerator Bridge plugin</li>
+        <li>Set export URL to: <div class="code" id="currentUrl"></div></li>
+        <li>Click "Export Selected" or "Export All"</li>
+      </ol>
+    </div>
+    
+    <div id="dataPreview"></div>
+    
+    <div id="actions" style="display: none; margin-top: 20px;">
+      <button class="button" onclick="openInApp()">Open in Copy Accelerator</button>
+      <button class="button" onclick="copyData()" style="margin-left: 10px; background: #6c757d;">Copy JSON</button>
+    </div>
+    
+    <div id="pasteArea" style="margin-top: 20px;">
+      <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 2px dashed #0066cc;">
+        <strong>Or paste your exported data here:</strong>
+        <textarea id="pasteInput" style="width: 100%; height: 100px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;" placeholder="Paste the JSON data from Figma plugin here..."></textarea>
+        <button class="button" onclick="processPastedData()" style="margin-top: 10px;">Process Pasted Data</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Show current URL
+    document.getElementById('currentUrl').textContent = window.location.origin + '/plugin-bridge.html';
+    
+    let receivedData = null;
+    
+    // Listen for POST messages
+    window.addEventListener('message', (event) => {
+      console.log('Received message:', event);
+      
+      // Accept messages from Figma
+      if (event.origin === 'https://www.figma.com' || event.origin === 'https://figma.com') {
+        handleFigmaData(event.data);
+      }
+    });
+    
+    // Also handle direct POST requests
+    if (window.location.hash) {
+      try {
+        const data = JSON.parse(decodeURIComponent(window.location.hash.slice(1)));
+        handleFigmaData(data);
+      } catch (e) {
+        console.error('Failed to parse hash data:', e);
+      }
+    }
+    
+    function handleFigmaData(data) {
+      receivedData = data;
+      
+      const status = document.getElementById('status');
+      const preview = document.getElementById('dataPreview');
+      const actions = document.getElementById('actions');
+      
+      if (data && data.frames) {
+        status.className = 'status success';
+        status.innerHTML = '✅ Successfully received ' + data.frames.length + ' frame(s)';
+        
+        // Show preview
+        preview.style.display = 'block';
+        preview.innerHTML = `
+          <strong>File:</strong> ${data.fileName || 'Unknown'}<br>
+          <strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}<br>
+          <strong>Frames:</strong>
+          <div class="frames-list">
+            ${data.frames.map(f => `
+              <div class="frame-item">
+                <strong>${f.name}</strong> - ${f.width}×${f.height}
+                ${f.children ? ` (${f.children.length} children)` : ''}
+              </div>
+            `).join('')}
+          </div>
+          ${data.images && Object.keys(data.images).length > 0 ? 
+            `<br><strong>Images:</strong> ${Object.keys(data.images).length} exported` : ''}
+        `;
+        
+        actions.style.display = 'block';
+        
+        // Store in sessionStorage for the main app
+        sessionStorage.setItem('figmaPluginData', JSON.stringify(data));
+        
+      } else {
+        status.className = 'status error';
+        status.innerHTML = '❌ Invalid data received';
+      }
+    }
+    
+    function openInApp() {
+      if (receivedData) {
+        // Store data and redirect to main app
+        sessionStorage.setItem('figmaPluginData', JSON.stringify(receivedData));
+        window.location.href = '/?tab=design&import=plugin';
+      }
+    }
+    
+    function copyData() {
+      if (receivedData) {
+        navigator.clipboard.writeText(JSON.stringify(receivedData, null, 2)).then(() => {
+          alert('Data copied to clipboard!');
+        });
+      }
+    }
+    
+    function processPastedData() {
+      const pasteInput = document.getElementById('pasteInput');
+      const pastedText = pasteInput.value.trim();
+      
+      if (!pastedText) {
+        alert('Please paste the JSON data first');
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(pastedText);
+        handleFigmaData(data);
+        pasteInput.value = ''; // Clear after successful processing
+      } catch (e) {
+        alert('Invalid JSON data. Please make sure you copied the entire export from the Figma plugin.');
+        console.error('Parse error:', e);
+      }
+    }
+    
+    // Handle fetch POST requests (from plugin)
+    if (window.location.pathname === '/api/figma-import') {
+      // This would need server-side handling
+      console.log('API endpoint accessed');
+    }
+  </script>
+</body>
+</html>

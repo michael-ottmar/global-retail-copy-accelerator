@@ -26,6 +26,52 @@ export function DesignView() {
 
   const { project } = useStore();
 
+  // Listen for plugin data via postMessage
+  useEffect(() => {
+    const handlePluginMessage = (event: MessageEvent) => {
+      // Security: Only accept from trusted origins
+      const trustedOrigins = [
+        'https://www.figma.com',
+        'https://figma.com',
+        'http://localhost:5173',
+        window.location.origin
+      ];
+      
+      if (!trustedOrigins.includes(event.origin)) {
+        console.warn('Rejected message from untrusted origin:', event.origin);
+        return;
+      }
+      
+      // Handle plugin data
+      if (event.data?.type === 'figma-plugin-export') {
+        console.log('Received data from Figma plugin:', event.data);
+        handleImportData(event.data.payload);
+      }
+    };
+    
+    window.addEventListener('message', handlePluginMessage);
+    return () => window.removeEventListener('message', handlePluginMessage);
+  }, []);
+
+  // Check for plugin data from bridge page
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('import') === 'plugin') {
+      const pluginData = sessionStorage.getItem('figmaPluginData');
+      if (pluginData) {
+        try {
+          const data = JSON.parse(pluginData);
+          handleImportData(data);
+          sessionStorage.removeItem('figmaPluginData');
+          // Remove import param from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (e) {
+          console.error('Failed to parse plugin data:', e);
+        }
+      }
+    }
+  }, []);
+
   // Check for MCP server on component mount
   useEffect(() => {
     const checkMCP = async () => {
