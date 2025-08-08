@@ -646,12 +646,17 @@
     
     // Export selected
     document.getElementById('exportSelectedBtn').addEventListener('click', () => {
+      if (selectedFrames.size === 0) {
+        showMessage('warning', 'Please select at least one frame from the list');
+        return;
+      }
       updateSettings();
       updateStatus('Exporting selected frames...');
       parent.postMessage({ 
         pluginMessage: { 
           type: 'export-selected',
-          settings: exportSettings
+          settings: exportSettings,
+          selectedIds: Array.from(selectedFrames)
         } 
       }, '*');
     });
@@ -670,12 +675,17 @@
     
     // Copy as JSON
     document.getElementById('copyJsonBtn').addEventListener('click', () => {
+      if (selectedFrames.size === 0) {
+        showMessage('warning', 'Please select at least one frame from the list');
+        return;
+      }
       updateSettings();
       updateStatus('Preparing JSON...');
       parent.postMessage({ 
         pluginMessage: { 
           type: 'export-selected',
-          settings: exportSettings
+          settings: exportSettings,
+          selectedIds: Array.from(selectedFrames)
         } 
       }, '*');
     });

@@ -26,7 +26,7 @@ figma.ui.onmessage = async (msg) => {
       break;
       
     case 'export-selected':
-      await exportSelected(msg.settings);
+      await exportSelected(msg.settings, msg.selectedIds);
       break;
       
     case 'export-all':
@@ -217,28 +217,46 @@ function extractNodeData(node) {
 }
 
 // Export selected frames
-async function exportSelected(settings) {
-  const selection = figma.currentPage.selection;
+async function exportSelected(settings, selectedIds) {
+  const frames = [];
+  let nodesToExport = [];
   
-  if (selection.length === 0) {
+  // If selectedIds provided from UI, use those
+  if (selectedIds && selectedIds.length > 0) {
+    for (const id of selectedIds) {
+      const node = figma.getNodeById(id);
+      if (node && (node.type === 'FRAME' || node.type === 'COMPONENT')) {
+        nodesToExport.push(node);
+      }
+    }
+  } else {
+    // Otherwise use canvas selection
+    const selection = figma.currentPage.selection;
+    if (selection.length === 0) {
+      figma.ui.postMessage({
+        type: 'error',
+        message: 'Please select at least one frame to export'
+      });
+      return;
+    }
+    nodesToExport = selection.filter(node => node.type === 'FRAME' || node.type === 'COMPONENT');
+  }
+  
+  if (nodesToExport.length === 0) {
     figma.ui.postMessage({
       type: 'error',
-      message: 'Please select at least one frame to export'
+      message: 'No valid frames found to export'
     });
     return;
   }
   
-  const frames = [];
-  
-  for (const node of selection) {
-    if (node.type === 'FRAME' || node.type === 'COMPONENT') {
-      const frameData = extractFrameData(node);
-      frames.push(frameData);
-      
-      // Export images if requested
-      if (settings.includeImages) {
-        await exportImages(node, settings);
-      }
+  for (const node of nodesToExport) {
+    const frameData = extractFrameData(node);
+    frames.push(frameData);
+    
+    // Export images if requested
+    if (settings.includeImages) {
+      await exportImages(node, settings);
     }
   }
   
