@@ -36,23 +36,33 @@ class FigmaApiService {
     }
 
     try {
-      const response = await fetch(`${FIGMA_API_BASE}/files/${fileKey}`, {
-        headers: {
-          'X-Figma-Token': token,
-        },
-      });
+      // Try proxy first (works on Vercel)
+      const proxyUrl = `/api/figma-proxy?fileKey=${fileKey}&token=${token}`;
+      const response = await fetch(proxyUrl);
 
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Invalid Figma access token or no access to file');
+        // Fallback to direct API (works locally with browser extension)
+        const directResponse = await fetch(`${FIGMA_API_BASE}/files/${fileKey}`, {
+          headers: {
+            'X-Figma-Token': token,
+          },
+        });
+
+        if (!directResponse.ok) {
+          if (directResponse.status === 403) {
+            throw new Error('Invalid Figma access token or no access to file');
+          }
+          throw new Error(`Figma API error: ${directResponse.statusText}`);
         }
-        throw new Error(`Figma API error: ${response.statusText}`);
+
+        const data = await directResponse.json();
+        return data;
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      // CORS issue - need to use proxy in production
+      // CORS issue - return mock data for testing
       console.error('Figma API error:', error);
       
       // For now, return mock data for testing

@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { FrameSelector } from './FrameSelector';
 import { FrameRenderer } from './FrameRenderer';
 import { VariableMapper } from './VariableMapper';
+import { ImportExport } from './ImportExport';
 import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
 import { figmaApi } from '../../services/figmaApi';
 import { KeyIcon } from 'lucide-react';
@@ -51,6 +52,15 @@ export function DesignView() {
     }
   };
 
+  const handleImportData = (data: any) => {
+    if (data.document) {
+      setFileName(data.name || 'Imported File');
+      setConnectionStatus('connected');
+      const topFrames = extractFrames(data.document);
+      setFrames(topFrames);
+    }
+  };
+
   const extractFrames = (node: FigmaNode, frames: FigmaNode[] = []): FigmaNode[] => {
     // Look for frames with our naming convention (e.g., "pdp", "banner", etc.)
     if (node.type === 'FRAME' && (
@@ -83,6 +93,12 @@ export function DesignView() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Import/Export */}
+            <ImportExport 
+              onImport={handleImportData}
+              currentData={frames.length > 0 ? { document: { children: frames }, name: fileName } : null}
+            />
+            
             {/* View Mode Toggle */}
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
               <button
