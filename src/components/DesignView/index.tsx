@@ -5,8 +5,8 @@ import { FrameRenderer } from './FrameRenderer';
 import { VariableMapper } from './VariableMapper';
 import { ImportExport } from './ImportExport';
 import type { FigmaNode, ParsedComponent, VariableMapping } from './types';
-import { figmaApi } from '../../services/figmaApi';
-import { KeyIcon } from 'lucide-react';
+import { secureFigmaApi } from '../../services/figmaApiSecure';
+import { KeyIcon, ShieldIcon, AlertTriangleIcon } from 'lucide-react';
 
 export function DesignView() {
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
@@ -19,7 +19,8 @@ export function DesignView() {
   const [viewMode, setViewMode] = useState<'figma' | 'mapped' | 'split'>('figma');
   const [error, setError] = useState<string | null>(null);
   const [showTokenInput, setShowTokenInput] = useState(false);
-  const [accessToken, setAccessToken] = useState(figmaApi.getAccessToken() || '');
+  const [accessToken, setAccessToken] = useState('');
+  const [allowedFiles, setAllowedFiles] = useState<string>('');
 
   const { project } = useStore();
 
@@ -29,14 +30,14 @@ export function DesignView() {
     
     try {
       // Check if we have an access token
-      if (!figmaApi.getAccessToken() && !fileKey.toLowerCase().includes('test')) {
+      if (!secureFigmaApi.hasToken() && !fileKey.toLowerCase().includes('test')) {
         setError('Please add your Figma access token first (click the key icon)');
         setConnectionStatus('disconnected');
         return;
       }
       
       // Use mock data for testing or real API
-      const fileData = await figmaApi.getFile(fileKey);
+      const fileData = await secureFigmaApi.getFile(fileKey);
       
       setFileName(fileData.name || 'Figma File');
       setConnectionStatus('connected');
@@ -159,16 +160,26 @@ export function DesignView() {
               <button
                 onClick={() => setShowTokenInput(!showTokenInput)}
                 className={`p-2 rounded-lg transition-colors ${
-                  accessToken ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                  secureFigmaApi.hasToken() ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
                 } hover:bg-gray-200`}
-                title={accessToken ? 'Token configured' : 'Add Figma access token'}
+                title={secureFigmaApi.hasToken() ? 'Token configured (session only)' : 'Add Figma access token'}
               >
-                <KeyIcon className="w-4 h-4" />
+                {secureFigmaApi.hasToken() ? <ShieldIcon className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />}
               </button>
             </div>
             
             {showTokenInput && (
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start gap-2 mb-3">
+                  <ShieldIcon className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Secure Token Setup</h4>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Token stored in memory only • Auto-clears after 30 min • Never saved to disk
+                    </p>
+                  </div>
+                </div>
+                
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Figma Access Token
                 </label>
@@ -179,21 +190,57 @@ export function DesignView() {
                   placeholder="figd_..."
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2"
                 />
+                
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Restrict to Specific Files (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={allowedFiles}
+                  onChange={(e) => setAllowedFiles(e.target.value)}
+                  placeholder="FILE_KEY1, FILE_KEY2 (comma separated)"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"
+                />
+                
+                <div className="bg-orange-50 border border-orange-200 rounded p-2 mb-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangleIcon className="w-4 h-4 text-orange-600 mt-0.5" />
+                    <p className="text-xs text-orange-800">
+                      <strong>Security Note:</strong> Figma tokens have account-wide access. 
+                      Consider creating a separate Figma account with only test files for development.
+                    </p>
+                  </div>
+                </div>
+                
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      figmaApi.setAccessToken(accessToken);
+                      const fileList = allowedFiles ? 
+                        allowedFiles.split(',').map(f => f.trim()).filter(Boolean) : 
+                        undefined;
+                      secureFigmaApi.setSecureToken(accessToken, fileList);
                       setShowTokenInput(false);
+                      setAccessToken(''); // Clear from state immediately
                     }}
                     className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                   >
-                    Save Token
+                    Use Token (Session Only)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowTokenInput(false);
+                      setAccessToken('');
+                      setAllowedFiles('');
+                    }}
+                    className="px-3 py-1 text-gray-600 text-sm hover:text-gray-800"
+                  >
+                    Cancel
                   </button>
                   <a
                     href="https://www.figma.com/developers/api#access-tokens"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1 text-blue-600 text-sm hover:underline"
+                    className="px-3 py-1 text-blue-600 text-sm hover:underline ml-auto"
                   >
                     Get Token →
                   </a>
@@ -202,8 +249,8 @@ export function DesignView() {
             )}
             
             <p className="text-sm text-gray-600 mb-4">
-              {accessToken ? 
-                'Enter a Figma file key or URL to start parsing frames' :
+              {secureFigmaApi.hasToken() ? 
+                'Token active for this session only. Enter a Figma file key to connect.' :
                 'For testing, enter "test" as the file key to use mock data'}
             </p>
             
