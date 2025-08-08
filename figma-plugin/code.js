@@ -255,9 +255,19 @@ async function exportSelected(settings, selectedIds) {
     const frameData = extractFrameData(node);
     frames.push(frameData);
     
-    // Export images if requested
+    // Export images if requested (with timeout protection)
     if (settings.includeImages) {
-      await exportImages(node, settings);
+      try {
+        // Add a 5 second timeout per frame
+        await Promise.race([
+          exportImages(node, settings),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Image export timeout')), 5000)
+          )
+        ]);
+      } catch (err) {
+        console.log(`Skipped image for ${node.name}:`, err.message);
+      }
     }
   }
   
@@ -295,7 +305,17 @@ async function exportAll(settings) {
     for (const frameData of processedFrames) {
       const node = figma.getNodeById(frameData.id);
       if (node) {
-        await exportImages(node, settings);
+        try {
+          // Add a 5 second timeout per frame
+          await Promise.race([
+            exportImages(node, settings),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Image export timeout')), 5000)
+            )
+          ]);
+        } catch (err) {
+          console.log(`Skipped image for ${frameData.name}:`, err.message);
+        }
       }
     }
     exportData.images = Object.fromEntries(imageExports);
@@ -307,52 +327,38 @@ async function exportAll(settings) {
   });
 }
 
-// Export images from a frame
+// Export images from a frame - Optimized version
 async function exportImages(node, settings) {
   try {
-    // Export the frame itself as an image
-    const bytes = await node.exportAsync({
-      format: settings.imageFormat || 'PNG',
-      constraint: { type: 'SCALE', value: settings.imageScale || 2 }
+    // Send progress update
+    figma.ui.postMessage({
+      type: 'export-progress',
+      message: `Exporting frame: ${node.name}`
     });
+    
+    // Only export the main frame as an image, not all children
+    // This gives us a visual preview without massive data
+    const bytes = await node.exportAsync({
+      format: 'PNG', // Always use PNG for now
+      constraint: { type: 'SCALE', value: 1 } // Use 1x for smaller size
+    });
+    
+    // Check size before encoding
+    if (bytes.length > 500000) { // 500KB limit
+      console.log(`Frame ${node.name} image too large (${bytes.length} bytes), skipping`);
+      return;
+    }
     
     // Convert to base64
     const base64 = figma.base64Encode(bytes);
-    imageExports.set(node.id, `data:image/${settings.imageFormat.toLowerCase()};base64,${base64}`);
+    imageExports.set(node.id, `data:image/png;base64,${base64}`);
     
-    // Also export individual image fills if present
-    async function findAndExportImages(searchNode) {
-      if ('fills' in searchNode && searchNode.fills !== figma.mixed) {
-        const fills = searchNode.fills;
-        for (const fill of fills) {
-          if (fill.type === 'IMAGE') {
-            // Export nodes with image fills
-            const imageBytes = await searchNode.exportAsync({
-              format: settings.imageFormat || 'PNG',
-              constraint: { type: 'SCALE', value: settings.imageScale || 2 }
-            });
-            const imageBase64 = figma.base64Encode(imageBytes);
-            imageExports.set(searchNode.id, `data:image/${settings.imageFormat.toLowerCase()};base64,${imageBase64}`);
-          }
-        }
-      }
-      
-      // Recurse through children
-      if ('children' in searchNode) {
-        for (const child of searchNode.children) {
-          await findAndExportImages(child);
-        }
-      }
-    }
-    
-    await findAndExportImages(node);
+    // Don't recursively export child images - too slow and too much data
+    // Users can see the frame preview which is usually enough
     
   } catch (error) {
-    console.error('Error exporting images:', error);
-    figma.ui.postMessage({
-      type: 'error',
-      message: `Failed to export images: ${error}`
-    });
+    console.error('Error exporting image for', node.name, error);
+    // Don't fail the whole export, just skip this image
   }
 }
 

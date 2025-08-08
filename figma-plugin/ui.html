@@ -509,9 +509,9 @@
             <label class="form-label">Export Options</label>
             <div class="settings-grid">
               <div class="setting-row">
-                <span class="setting-label">Include Images</span>
+                <span class="setting-label">Include Images (slower)</span>
                 <label class="switch">
-                  <input type="checkbox" id="includeImages" checked>
+                  <input type="checkbox" id="includeImages">
                   <span class="slider"></span>
                 </label>
               </div>
@@ -868,6 +868,10 @@
         case 'error':
           showMessage('error', msg.message);
           updateStatus('Error occurred');
+          break;
+          
+        case 'export-progress':
+          updateStatus(msg.message);
           break;
       }
     };
