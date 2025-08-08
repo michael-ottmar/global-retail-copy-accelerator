@@ -23,6 +23,7 @@ export function DesignView() {
   const [accessToken, setAccessToken] = useState('');
   const [allowedFiles, setAllowedFiles] = useState<string>('');
   const [mcpAvailable, setMcpAvailable] = useState<boolean | null>(null);
+  const [importNotification, setImportNotification] = useState<string | null>(null);
 
   const { project } = useStore();
 
@@ -137,11 +138,26 @@ export function DesignView() {
   };
 
   const handleImportData = (data: any) => {
-    if (data.document) {
-      setFileName(data.name || 'Imported File');
-      setConnectionStatus('connected');
-      const topFrames = extractFrames(data.document);
-      setFrames(topFrames);
+    if (data.document || data.frames) {
+      // Handle both old format (document) and new format (frames)
+      if (data.frames) {
+        // New format from plugin
+        setFileName(data.fileName || 'Figma Export');
+        setConnectionStatus('connected');
+        setFrames(data.frames);
+        
+        // Show notification with export details
+        if (data.exportId) {
+          setImportNotification(`✅ Imported Export ${data.exportId} - ${data.frames.length} frames`);
+          setTimeout(() => setImportNotification(null), 5000);
+        }
+      } else if (data.document) {
+        // Old format
+        setFileName(data.name || 'Imported File');
+        setConnectionStatus('connected');
+        const topFrames = extractFrames(data.document);
+        setFrames(topFrames);
+      }
     }
   };
 
@@ -166,6 +182,19 @@ export function DesignView() {
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
+      {/* Import Notification */}
+      {importNotification && (
+        <div className="bg-green-50 border-b border-green-200 px-6 py-3 flex items-center justify-between">
+          <span className="text-green-800 font-medium">{importNotification}</span>
+          <button 
+            onClick={() => setImportNotification(null)}
+            className="text-green-600 hover:text-green-800"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
@@ -177,6 +206,32 @@ export function DesignView() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Simple Import from Clipboard Button */}
+            <button
+              onClick={async () => {
+                try {
+                  const text = await navigator.clipboard.readText();
+                  const data = JSON.parse(text);
+                  
+                  if (data.exportId) {
+                    // Show notification with export ID
+                    console.log(`Importing Export ${data.exportId}`);
+                  }
+                  
+                  handleImportData(data);
+                  setError(null);
+                } catch (err) {
+                  setError('No valid Figma data in clipboard. Please export from Figma plugin first.');
+                }
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Import from Figma
+            </button>
+            
             {/* Import/Export */}
             <ImportExport 
               onImport={handleImportData}

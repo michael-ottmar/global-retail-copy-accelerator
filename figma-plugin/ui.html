@@ -823,32 +823,42 @@
         case 'export-ready':
           console.log('Export ready, processing data...', msg.data);
           
-          // Always copy to clipboard first
+          // Generate a simple export ID
+          const exportId = generateExportId();
+          msg.data.exportId = exportId;
+          msg.data.exportedBy = 'Designer'; // Figma doesn't expose currentUser in UI
+          
+          // Always copy to clipboard
           copyToClipboard(msg.data);
           
-          if (exportSettings.targetUrl) {
-            const bridgeUrl = exportSettings.targetUrl.replace(/\/$/, '') + '/plugin-bridge.html';
-            
-            // Try to open bridge page
-            try {
-              const newWindow = window.open(bridgeUrl, '_blank');
-              if (newWindow) {
-                showMessage('success', '📋 Data copied to clipboard! Bridge page opened in new tab.\nPaste the data there to continue.');
-                updateStatus('Export complete - paste in bridge');
-              } else {
-                // Window.open was blocked
-                showMessage('info', `📋 Data copied to clipboard!\n\nOpen this URL manually:\n${bridgeUrl}\n\nThen paste your data there.`);
-                updateStatus('Copied - open bridge manually');
-              }
-            } catch (e) {
-              // Fallback if window.open fails
-              showMessage('info', `📋 Data copied to clipboard!\n\nOpen this URL:\n${bridgeUrl}\n\nThen paste your data there.`);
-              updateStatus('Copied - open bridge manually');
-            }
-          } else {
-            showMessage('success', '📋 Data copied to clipboard!');
-            updateStatus('Export complete');
+          // Store in localStorage for the web app to detect
+          try {
+            localStorage.setItem('latestFigmaExport', JSON.stringify({
+              id: exportId,
+              timestamp: msg.data.timestamp,
+              frameCount: msg.data.frames.length,
+              hasImages: !!(msg.data.images && Object.keys(msg.data.images).length > 0)
+            }));
+          } catch (e) {
+            console.log('Could not store export info:', e);
           }
+          
+          // Show simple success message with export ID
+          const frameCount = msg.data.frames.length;
+          const imageCount = msg.data.images ? Object.keys(msg.data.images).length : 0;
+          
+          showMessage('success', 
+            `✅ Export Ready!\n\n` +
+            `Export ID: ${exportId}\n` +
+            `${frameCount} frame(s) • ${imageCount} image(s)\n\n` +
+            `📋 Data copied to clipboard.\n` +
+            `Go to the web app and click "Import from Clipboard"`
+          );
+          
+          updateStatus(`Export ${exportId} ready`);
+          
+          // Show in export tab
+          showExportSummary(exportId, msg.data);
           break;
           
         case 'copy-to-clipboard':
@@ -866,11 +876,56 @@
     function copyToClipboard(data) {
       const text = JSON.stringify(data, null, 2);
       navigator.clipboard.writeText(text).then(() => {
-        showMessage('success', '📋 Copied to clipboard!');
-        updateStatus('Copied to clipboard');
+        console.log('Data copied to clipboard');
       }).catch(() => {
         showMessage('error', 'Failed to copy to clipboard');
       });
+    }
+    
+    // Generate simple export ID
+    function generateExportId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let id = '';
+      for (let i = 0; i < 6; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return id;
+    }
+    
+    // Show export summary in UI
+    function showExportSummary(exportId, data) {
+      const container = document.getElementById('exportMessages');
+      if (!container) return;
+      
+      // Clear old messages
+      container.innerHTML = '';
+      
+      // Create summary card
+      const summary = document.createElement('div');
+      summary.className = 'card';
+      summary.style.background = '#f0fff4';
+      summary.style.border = '2px solid #28a745';
+      summary.innerHTML = `
+        <div style="font-size: 18px; font-weight: 600; color: #28a745; margin-bottom: 10px;">
+          ✅ Export ${exportId} Ready
+        </div>
+        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+          <strong>${data.frames.length}</strong> frames exported<br>
+          <strong>${data.images ? Object.keys(data.images).length : 0}</strong> images included<br>
+          <strong>${new Date(data.timestamp).toLocaleTimeString()}</strong>
+        </div>
+        <div style="padding: 10px; background: white; border-radius: 6px; margin-bottom: 10px;">
+          <strong>Next Steps:</strong><br>
+          1. Go to your web app<br>
+          2. Open the Design tab<br>
+          3. Click "Import from Clipboard"<br>
+          4. The data will be automatically pasted
+        </div>
+        <button class="btn btn-primary btn-block" onclick="copyToClipboard(${JSON.stringify(data).replace(/"/g, '&quot;')})">
+          Copy Again
+        </button>
+      `;
+      container.appendChild(summary);
     }
     
     // Initialize
