@@ -220,6 +220,7 @@ function extractNodeData(node) {
 async function exportSelected(settings, selectedIds) {
   const frames = [];
   let nodesToExport = [];
+  imageExports.clear(); // Clear previous exports
   
   // If selectedIds provided from UI, use those
   if (selectedIds && selectedIds.length > 0) {
@@ -280,6 +281,8 @@ async function exportAll(settings) {
     await scanFrames();
   }
   
+  imageExports.clear(); // Clear previous exports
+  
   const exportData = {
     timestamp: Date.now(),
     fileName: figma.root.name,
@@ -309,8 +312,8 @@ async function exportImages(node, settings) {
   try {
     // Export the frame itself as an image
     const bytes = await node.exportAsync({
-      format: settings.imageFormat,
-      scale: settings.imageScale
+      format: settings.imageFormat || 'PNG',
+      constraint: { type: 'SCALE', value: settings.imageScale || 2 }
     });
     
     // Convert to base64
@@ -325,8 +328,8 @@ async function exportImages(node, settings) {
           if (fill.type === 'IMAGE') {
             // Export nodes with image fills
             const imageBytes = await searchNode.exportAsync({
-              format: settings.imageFormat,
-              scale: settings.imageScale
+              format: settings.imageFormat || 'PNG',
+              constraint: { type: 'SCALE', value: settings.imageScale || 2 }
             });
             const imageBase64 = figma.base64Encode(imageBytes);
             imageExports.set(searchNode.id, `data:image/${settings.imageFormat.toLowerCase()};base64,${imageBase64}`);
