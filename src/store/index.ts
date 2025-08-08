@@ -8,7 +8,7 @@ interface Store {
   translations: Translation[];
   
   // UI state
-  currentView: 'table' | 'mockup' | 'word';
+  currentView: 'table' | 'mockup' | 'word' | 'design';
   selectedLanguage: string;
   selectedDeliverable: string | null;
   selectedVariant: string | null;
@@ -34,7 +34,7 @@ interface Store {
   updateTranslation: (fieldId: string, languageCode: string, value: string, variantId?: string) => void;
   getTranslation: (fieldId: string, languageCode: string, variantId?: string) => Translation | undefined;
   getEffectiveTranslation: (fieldId: string, languageCode: string, variantId: string) => Translation | undefined;
-  setCurrentView: (view: 'table' | 'mockup' | 'word') => void;
+  setCurrentView: (view: 'table' | 'mockup' | 'word' | 'design') => void;
   setSelectedLanguage: (language: string) => void;
   setSelectedDeliverable: (deliverableId: string | null) => void;
   setSelectedVariant: (variantId: string | null) => void;

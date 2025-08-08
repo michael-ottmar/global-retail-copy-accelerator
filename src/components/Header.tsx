@@ -16,7 +16,8 @@ import {
   PlusIcon,
   LanguagesIcon,
   PackageIcon,
-  ToggleLeftIcon
+  ToggleLeftIcon,
+  PenToolIcon
 } from 'lucide-react';
 import { exportToFigmaJSON, downloadJSON } from '../utils/exportJson';
 import { exportToWord } from '../utils/exportWord';
@@ -151,6 +152,17 @@ export function Header() {
               >
                 <FileTextIcon className="w-4 h-4" />
                 <span className="ml-1.5">Word</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('design')}
+                className={`flex items-center px-3 py-1.5 text-sm font-medium transition-colors ${
+                  currentView === 'design'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <PenToolIcon className="w-4 h-4" />
+                <span className="ml-1.5">Design</span>
               </button>
             </div>
 

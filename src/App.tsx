@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { TableView } from './components/TableView';
 import { MockupView } from './components/MockupView';
 import { WordView } from './components/WordView';
+import { DesignView } from './components/DesignView';
 import { createSampleProject } from './utils/sampleData';
 
 function App() {
@@ -41,7 +42,10 @@ function App() {
     <div className="h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1 overflow-hidden">
-        {currentView === 'table' ? <TableView /> : currentView === 'mockup' ? <MockupView /> : <WordView />}
+        {currentView === 'table' ? <TableView /> : 
+         currentView === 'mockup' ? <MockupView /> : 
+         currentView === 'word' ? <WordView /> : 
+         <DesignView />}
       </main>
     </div>
   );
