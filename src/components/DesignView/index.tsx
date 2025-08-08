@@ -49,32 +49,30 @@ export function DesignView() {
     try {
       let fileData = null;
       
-      // Try MCP first if available (local only)
-      if (mcpAvailable && fileKey !== 'test') {
-        try {
-          console.log('Attempting to connect via MCP...');
-          fileData = await mcpFigmaClient.getFile(fileKey);
-          console.log('MCP connection successful!');
-        } catch (mcpError) {
-          console.log('MCP failed, falling back to API:', mcpError);
-          // Fall through to try API
+      // Check for test data options
+      if (fileKey.toLowerCase().startsWith('test')) {
+        // Import test data generator
+        const { generateTestFile } = await import('../../services/testDataGenerator');
+        
+        // Generate specific test type based on key
+        if (fileKey === 'test-pdp') {
+          fileData = generateTestFile('pdp');
+        } else if (fileKey === 'test-banner') {
+          fileData = generateTestFile('banner');
+        } else if (fileKey === 'test-email') {
+          fileData = generateTestFile('email');
+        } else {
+          fileData = generateTestFile('all');
         }
-      }
-      
-      // Try API if MCP didn't work
-      if (!fileData) {
-        // Check if we have an access token
-        if (!secureFigmaApi.hasToken() && !fileKey.toLowerCase().includes('test')) {
-          if (mcpAvailable) {
-            setError('MCP connection failed. Add a Figma token or check MCP server.');
-          } else {
-            setError('Please add your Figma access token first (click the key icon)');
-          }
+      } else {
+        // Check if we have an access token for real files
+        if (!secureFigmaApi.hasToken()) {
+          setError('Please add your Figma access token (click key icon) or use "test" for mock data');
           setConnectionStatus('disconnected');
           return;
         }
         
-        // Use mock data for testing or real API
+        // Use real API with token
         fileData = await secureFigmaApi.getFile(fileKey);
       }
       
@@ -299,16 +297,44 @@ export function DesignView() {
               </div>
             )}
             
-            <p className="text-sm text-gray-600 mb-4">
-              {mcpAvailable ? (
-                <span className="flex items-center gap-2">
-                  <ServerIcon className="w-4 h-4 text-green-600" />
-                  MCP server detected! Enter a file key to connect directly.
-                </span>
-              ) : secureFigmaApi.hasToken() ? 
-                'Token active for this session only. Enter a Figma file key to connect.' :
-                'For testing, enter "test" as the file key to use mock data'}
-            </p>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                {secureFigmaApi.hasToken() ? 
+                  'Token active for this session. Enter a Figma file key.' :
+                  'Use test data or add a token for real files.'}
+              </p>
+              
+              {/* Test data options */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-blue-900 mb-2">Test Data Available:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => setFileKey('test')}
+                    className="text-left px-2 py-1 bg-white rounded border border-blue-200 hover:bg-blue-100"
+                  >
+                    <strong>test</strong> - All frames
+                  </button>
+                  <button
+                    onClick={() => setFileKey('test-pdp')}
+                    className="text-left px-2 py-1 bg-white rounded border border-blue-200 hover:bg-blue-100"
+                  >
+                    <strong>test-pdp</strong> - PDP frames
+                  </button>
+                  <button
+                    onClick={() => setFileKey('test-banner')}
+                    className="text-left px-2 py-1 bg-white rounded border border-blue-200 hover:bg-blue-100"
+                  >
+                    <strong>test-banner</strong> - Banners
+                  </button>
+                  <button
+                    onClick={() => setFileKey('test-email')}
+                    className="text-left px-2 py-1 bg-white rounded border border-blue-200 hover:bg-blue-100"
+                  >
+                    <strong>test-email</strong> - CRM
+                  </button>
+                </div>
+              </div>
+            </div>
             
             <div className="space-y-4">
               <div>
