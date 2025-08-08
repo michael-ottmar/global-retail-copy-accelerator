@@ -785,15 +785,25 @@
     
     // Show message
     function showMessage(type, text) {
-      const container = document.getElementById('exportMessages');
-      const message = document.createElement('div');
-      message.className = `message message-${type}`;
-      message.textContent = text;
-      container.appendChild(message);
+      // First, update the status in the footer
+      updateStatus(text.split('\n')[0]);
       
-      setTimeout(() => {
-        message.remove();
-      }, 5000);
+      // Then show message in export tab if it exists
+      const container = document.getElementById('exportMessages');
+      if (container) {
+        const message = document.createElement('div');
+        message.className = `message message-${type}`;
+        message.style.whiteSpace = 'pre-wrap';
+        message.textContent = text;
+        container.appendChild(message);
+        
+        setTimeout(() => {
+          message.remove();
+        }, 10000); // Show for 10 seconds
+      }
+      
+      // Also log to console for debugging
+      console.log(`[${type}] ${text}`);
     }
     
     // Handle messages from plugin
@@ -811,28 +821,33 @@
           break;
           
         case 'export-ready':
-          // Try multiple methods to send data
+          console.log('Export ready, processing data...', msg.data);
+          
+          // Always copy to clipboard first
+          copyToClipboard(msg.data);
+          
           if (exportSettings.targetUrl) {
-            // For Vercel deployments, go directly to bridge page since API routes need special setup
             const bridgeUrl = exportSettings.targetUrl.replace(/\/$/, '') + '/plugin-bridge.html';
             
-            // Method 1: Try opening bridge page with data in URL hash (for smaller data)
-            if (msg.data.frames && msg.data.frames.length < 5 && !msg.data.images) {
-              // Small payload - can use URL hash
-              const encodedData = encodeURIComponent(JSON.stringify(msg.data));
-              window.open(`${bridgeUrl}#${encodedData}`, '_blank');
-              showMessage('success', '📤 Sent to bridge page - check the new tab');
-              updateStatus('Sent to bridge');
-            } else {
-              // Method 2: Copy to clipboard and open bridge page
-              copyToClipboard(msg.data);
-              window.open(bridgeUrl, '_blank');
-              showMessage('info', '📋 Data copied! Paste it in the bridge page that just opened');
-              updateStatus('Copied & opened bridge');
+            // Try to open bridge page
+            try {
+              const newWindow = window.open(bridgeUrl, '_blank');
+              if (newWindow) {
+                showMessage('success', '📋 Data copied to clipboard! Bridge page opened in new tab.\nPaste the data there to continue.');
+                updateStatus('Export complete - paste in bridge');
+              } else {
+                // Window.open was blocked
+                showMessage('info', `📋 Data copied to clipboard!\n\nOpen this URL manually:\n${bridgeUrl}\n\nThen paste your data there.`);
+                updateStatus('Copied - open bridge manually');
+              }
+            } catch (e) {
+              // Fallback if window.open fails
+              showMessage('info', `📋 Data copied to clipboard!\n\nOpen this URL:\n${bridgeUrl}\n\nThen paste your data there.`);
+              updateStatus('Copied - open bridge manually');
             }
           } else {
-            // Copy to clipboard
-            copyToClipboard(msg.data);
+            showMessage('success', '📋 Data copied to clipboard!');
+            updateStatus('Export complete');
           }
           break;
           
